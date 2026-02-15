@@ -1,18 +1,17 @@
-```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>MP SHOP POS PRO</title>
+<title>MP SHOP POS PRO MAX</title>
 
 <style>
 body{
 font-family: Arial;
-background:#f4f6f9;
+background:#f0f2f5;
 margin:0;
 }
 
-header{
+.header{
 background:#2c3e50;
 color:white;
 padding:15px;
@@ -21,17 +20,15 @@ justify-content:space-between;
 }
 
 .container{
-display:flex;
-gap:20px;
 padding:20px;
 }
 
 .card{
 background:white;
 padding:15px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
-flex:1;
+margin-bottom:15px;
+border-radius:8px;
+box-shadow:0 0 5px rgba(0,0,0,0.2);
 }
 
 button{
@@ -39,119 +36,110 @@ background:#3498db;
 color:white;
 border:none;
 padding:10px;
-margin:5px 0;
-cursor:pointer;
 width:100%;
+margin-top:5px;
+cursor:pointer;
 }
 
 button:hover{
 background:#2980b9;
 }
 
-input,select{
+input{
 width:100%;
 padding:8px;
-margin:5px 0;
-}
-
-.product{
-border:1px solid #ddd;
-padding:10px;
-margin:5px;
-cursor:pointer;
-}
-
-.product:hover{
-background:#ecf0f1;
+margin-top:5px;
 }
 
 .hidden{
 display:none;
 }
 
-.adminOnly{
-display:none;
+.login-box{
+width:300px;
+margin:100px auto;
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.3);
 }
 
-table{
-width:100%;
-border-collapse:collapse;
+.product{
+padding:10px;
+background:#ecf0f1;
+margin:5px;
+cursor:pointer;
 }
 
-td,th{
-padding:8px;
-border-bottom:1px solid #ddd;
+.product:hover{
+background:#d0d7de;
 }
+
 </style>
-
 </head>
 <body>
 
-<header>
+<!-- LOGIN -->
+<div id="loginPage">
 
-<div>
-🛒 MP SHOP POS PRO
+<div class="login-box">
+
+<h2>🔐 Login POS</h2>
+
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
 </div>
 
-<div>
-<select id="roleSelect" onchange="changeRole()">
-<option value="cashier">Cashier</option>
-<option value="admin">Admin</option>
-</select>
-
 </div>
 
-</header>
+<!-- POS -->
+<div id="posPage" class="hidden">
+
+<div class="header">
+
+<div>🛒 MP SHOP POS PRO MAX</div>
+
+<div>
+<span id="roleText"></span>
+<button onclick="logout()">Logout</button>
+</div>
+
+</div>
 
 <div class="container">
-
-<!-- LEFT -->
 
 <div class="card">
 
 <h3>ค้นหา</h3>
 
-<input id="search" placeholder="ค้นหา..." onkeyup="renderProducts()">
+<input oninput="search(this.value)" placeholder="ค้นหา...">
 
 <div id="productList"></div>
 
 </div>
 
-<!-- RIGHT -->
-
 <div class="card">
 
 <h3>ตะกร้า</h3>
 
-<table>
-<thead>
-<tr>
-<th>สินค้า</th>
-<th>ราคา</th>
-<th>ลบ</th>
-</tr>
-</thead>
-<tbody id="cartTable"></tbody>
-</table>
+<div id="cart"></div>
 
-<h3 id="total">รวม: 0 บาท</h3>
+<div id="total">รวม: 0 บาท</div>
 
 <button onclick="checkout()">ชำระเงิน</button>
 
 </div>
 
-</div>
-
-<!-- ADMIN PANEL -->
-
-<div class="container adminOnly" id="adminPanel">
+<div id="adminPanel" class="hidden">
 
 <div class="card">
 
 <h3>เพิ่มสินค้า (Admin)</h3>
 
 <input id="pname" placeholder="ชื่อสินค้า">
-
 <input id="pprice" type="number" placeholder="ราคา">
 
 <button onclick="addProduct()">เพิ่มสินค้า</button>
@@ -160,13 +148,15 @@ border-bottom:1px solid #ddd;
 
 <div class="card">
 
-<h3>รายงานวันนี้ (Admin)</h3>
+<h3>รายงาน (Admin)</h3>
 
-<p id="reportSales">ยอดขาย: 0</p>
+<div id="report"></div>
 
-<p id="reportItems">จำนวน: 0</p>
+<button onclick="exportExcel()">Export Excel</button>
 
-<button onclick="exportCSV()">Export Excel</button>
+</div>
+
+</div>
 
 </div>
 
@@ -174,98 +164,101 @@ border-bottom:1px solid #ddd;
 
 <script>
 
-/* DATABASE */
-
-let db = JSON.parse(localStorage.getItem("MP_DB")) || {
-
-products:[
+let products =
+JSON.parse(localStorage.getItem("products")) ||
+[
 {name:"โค้ก",price:15},
 {name:"น้ำ",price:10}
-],
-
-sales:[]
-
-};
+];
 
 let cart=[];
+let sales=JSON.parse(localStorage.getItem("sales"))||[];
 
-let role="cashier";
+let role="";
 
-/* SAVE */
+function login(){
 
-function save(){
+let u=document.getElementById("user").value;
+let p=document.getElementById("pass").value;
 
-localStorage.setItem("MP_DB",JSON.stringify(db));
-
+if(u=="admin" && p=="1234"){
+role="admin";
+}
+else if(u=="cashier" && p=="0000"){
+role="cashier";
+}
+else{
+alert("ผิด");
+return;
 }
 
-/* ROLE */
+document.getElementById("loginPage").classList.add("hidden");
+document.getElementById("posPage").classList.remove("hidden");
 
-function changeRole(){
-
-role=document.getElementById("roleSelect").value;
+document.getElementById("roleText").innerText=role;
 
 if(role=="admin"){
-
-document.querySelectorAll(".adminOnly").forEach(e=>e.style.display="flex");
-
-}else{
-
-document.querySelectorAll(".adminOnly").forEach(e=>e.style.display="none");
-
+document.getElementById("adminPanel").classList.remove("hidden");
 }
-
-}
-
-/* PRODUCTS */
-
-function renderProducts(){
-
-let html="";
-
-let search=document.getElementById("search").value;
-
-db.products.forEach((p,i)=>{
-
-if(p.name.includes(search)){
-
-html+=`
-<div class="product" onclick="addToCart(${i})">
-${p.name} - ${p.price} บาท
-</div>
-`;
-
-}
-
-});
-
-document.getElementById("productList").innerHTML=html;
-
-}
-
-/* ADD PRODUCT */
-
-function addProduct(){
-
-if(role!="admin") return;
-
-let name=document.getElementById("pname").value;
-
-let price=parseFloat(document.getElementById("pprice").value);
-
-db.products.push({name,price});
-
-save();
 
 renderProducts();
 
 }
 
-/* CART */
+function logout(){
 
-function addToCart(i){
+location.reload();
 
-cart.push(db.products[i]);
+}
+
+function renderProducts(){
+
+let list=document.getElementById("productList");
+list.innerHTML="";
+
+products.forEach(p=>{
+
+let div=document.createElement("div");
+
+div.className="product";
+
+div.innerText=p.name+" - "+p.price+" บาท";
+
+div.onclick=()=>addCart(p);
+
+list.appendChild(div);
+
+});
+
+}
+
+function search(text){
+
+let filtered=products.filter(p=>p.name.includes(text));
+
+let list=document.getElementById("productList");
+
+list.innerHTML="";
+
+filtered.forEach(p=>{
+
+let div=document.createElement("div");
+
+div.className="product";
+
+div.innerText=p.name+" - "+p.price+" บาท";
+
+div.onclick=()=>addCart(p);
+
+list.appendChild(div);
+
+});
+
+}
+
+function addCart(p){
+
+cart.push(p);
 
 renderCart();
 
@@ -273,98 +266,74 @@ renderCart();
 
 function renderCart(){
 
-let html="";
+let c=document.getElementById("cart");
+
+c.innerHTML="";
 
 let total=0;
 
-cart.forEach((c,i)=>{
+cart.forEach((p,i)=>{
 
-total+=c.price;
+total+=p.price;
 
-html+=`
-<tr>
-<td>${c.name}</td>
-<td>${c.price}</td>
-<td><button onclick="removeCart(${i})">X</button></td>
-</tr>
-`;
+let div=document.createElement("div");
+
+div.innerText=p.name+" "+p.price;
+
+c.appendChild(div);
 
 });
 
-document.getElementById("cartTable").innerHTML=html;
-
-document.getElementById("total").innerText="รวม: "+total+" บาท";
+document.getElementById("total").innerText="รวม: "+total;
 
 }
-
-/* REMOVE */
-
-function removeCart(i){
-
-cart.splice(i,1);
-
-renderCart();
-
-}
-
-/* CHECKOUT */
 
 function checkout(){
 
-if(cart.length==0) return;
+let total=cart.reduce((a,b)=>a+b.price,0);
 
-db.sales.push({
+sales.push(total);
 
-date:new Date().toLocaleDateString(),
-
-items:cart,
-
-total:cart.reduce((a,b)=>a+b.price,0)
-
-});
+localStorage.setItem("sales",JSON.stringify(sales));
 
 cart=[];
 
-save();
-
 renderCart();
+
+alert("ชำระเงินแล้ว");
 
 renderReport();
 
 }
 
-/* REPORT */
+function addProduct(){
 
-function renderReport(){
+let name=document.getElementById("pname").value;
+let price=parseFloat(document.getElementById("pprice").value);
 
-let total=0;
+products.push({name,price});
 
-let items=0;
+localStorage.setItem("products",JSON.stringify(products));
 
-db.sales.forEach(s=>{
-
-total+=s.total;
-
-items+=s.items.length;
-
-});
-
-document.getElementById("reportSales").innerText="ยอดขาย: "+total;
-
-document.getElementById("reportItems").innerText="จำนวน: "+items;
+renderProducts();
 
 }
 
-/* EXPORT */
+function renderReport(){
 
-function exportCSV(){
+let total=sales.reduce((a,b)=>a+b,0);
 
-let csv="date,total\n";
+document.getElementById("report").innerText=
+"ยอดขายรวม: "+total;
 
-db.sales.forEach(s=>{
+}
 
-csv+=s.date+","+s.total+"\n";
+function exportExcel(){
 
+let csv="ยอดขาย\n";
+
+sales.forEach(s=>{
+csv+=s+"\n";
 });
 
 let blob=new Blob([csv]);
@@ -379,18 +348,7 @@ a.click();
 
 }
 
-/* INIT */
-
-changeRole();
-
-renderProducts();
-
-renderCart();
-
-renderReport();
-
 </script>
 
 </body>
 </html>
-```
