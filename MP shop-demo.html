@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POS System - Purple Theme</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #6a0dad, #ffffff);
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+h1 {
+    text-align: center;
+    color: #6a0dad;
+}
+
+input {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #6a0dad;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #4b0082;
+}
+
+table {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+}
+
+th {
+    background: #6a0dad;
+    color: white;
+    padding: 10px;
+}
+
+td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.total {
+    font-size: 20px;
+    font-weight: bold;
+    color: #6a0dad;
+    margin-top: 10px;
+}
+
+.result {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.clear-btn {
+    background: red;
+}
+
+.clear-btn:hover {
+    background: darkred;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>🧾 โปรแกรมแคชเชียร์ (POS)</h1>
+
+<input type="text" id="name" placeholder="ชื่อสินค้า">
+<input type="number" id="price" placeholder="ราคา">
+<input type="number" id="qty" placeholder="จำนวน">
+
+<button onclick="addItem()">เพิ่มสินค้า</button>
+
+<table id="table">
+<tr>
+<th>สินค้า</th>
+<th>ราคา</th>
+<th>จำนวน</th>
+<th>รวม</th>
+</tr>
+</table>
+
+<div class="total">
+รวมทั้งหมด: <span id="total">0</span> บาท
+</div>
+
+<hr>
+
+<input type="number" id="money" placeholder="รับเงิน">
+
+<button onclick="calculateChange()">คำนวณเงินทอน</button>
+<button class="clear-btn" onclick="clearAll()">ล้างทั้งหมด</button>
+
+<div class="result" id="change"></div>
+
+</div>
+
+<script>
+
+let total = 0;
+
+function addItem() {
+
+    let name = document.getElementById("name").value;
+    let price = parseFloat(document.getElementById("price").value);
+    let qty = parseInt(document.getElementById("qty").value);
+
+    if(name === "" || isNaN(price) || isNaN(qty)) {
+        alert("กรอกข้อมูลให้ครบ");
+        return;
+    }
+
+    let sum = price * qty;
+    total += sum;
+
+    let table = document.getElementById("table");
+
+    let row = table.insertRow();
+
+    row.insertCell(0).innerText = name;
+    row.insertCell(1).innerText = price;
+    row.insertCell(2).innerText = qty;
+    row.insertCell(3).innerText = sum;
+
+    document.getElementById("total").innerText = total;
+
+    document.getElementById("name").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("qty").value = "";
+}
+
+function calculateChange() {
+
+    let money = parseFloat(document.getElementById("money").value);
+
+    if(isNaN(money)) {
+        alert("กรอกจำนวนเงิน");
+        return;
+    }
+
+    if(money < total) {
+        document.getElementById("change").innerText =
+        "เงินไม่พอ!";
+    }
+    else {
+        let change = money - total;
+
+        document.getElementById("change").innerText =
+        "เงินทอน: " + change + " บาท";
+    }
+}
+
+function clearAll() {
+
+    location.reload();
+
+}
+
+</script>
+
+</body>
+</html>
