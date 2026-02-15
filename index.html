@@ -5,8 +5,9 @@
 <title>MP SHOP POS PRO MAX</title>
 
 <style>
+
 body{
-font-family: Arial;
+font-family:Arial;
 background:#f0f2f5;
 margin:0;
 }
@@ -75,7 +76,23 @@ cursor:pointer;
 background:#d0d7de;
 }
 
+.qrBox{
+text-align:center;
+}
+
+.qrBox img{
+width:250px;
+}
+
+.payTotal{
+font-size:20px;
+margin:10px;
+color:#e74c3c;
+font-weight:bold;
+}
+
 </style>
+
 </head>
 <body>
 
@@ -95,7 +112,7 @@ background:#d0d7de;
 
 </div>
 
-<!-- POS -->
+<!-- POS PAGE -->
 <div id="posPage" class="hidden">
 
 <div class="header">
@@ -129,10 +146,30 @@ background:#d0d7de;
 
 <div id="total">รวม: 0 บาท</div>
 
-<button onclick="checkout()">ชำระเงิน</button>
+<button onclick="showQR()">ชำระเงิน</button>
 
 </div>
 
+<!-- QR PAYMENT -->
+<div id="qrCard" class="card hidden">
+
+<div class="qrBox">
+
+<h3>📱 สแกนเพื่อชำระเงิน</h3>
+
+<img src="promptpay.jpg">
+
+<div class="payTotal" id="qrTotal"></div>
+
+<button onclick="confirmPayment()">✔ ชำระเงินเสร็จแล้ว</button>
+
+<button onclick="cancelPayment()">ยกเลิก</button>
+
+</div>
+
+</div>
+
+<!-- ADMIN -->
 <div id="adminPanel" class="hidden">
 
 <div class="card">
@@ -148,7 +185,7 @@ background:#d0d7de;
 
 <div class="card">
 
-<h3>รายงาน (Admin)</h3>
+<h3>รายงาน</h3>
 
 <div id="report"></div>
 
@@ -172,14 +209,17 @@ JSON.parse(localStorage.getItem("products")) ||
 ];
 
 let cart=[];
-let sales=JSON.parse(localStorage.getItem("sales"))||[];
+let sales=
+JSON.parse(localStorage.getItem("sales"))||[];
 
 let role="";
 
+
+// LOGIN
 function login(){
 
-let u=document.getElementById("user").value;
-let p=document.getElementById("pass").value;
+let u=user.value;
+let p=pass.value;
 
 if(u=="admin" && p=="1234"){
 role="admin";
@@ -188,33 +228,35 @@ else if(u=="cashier" && p=="0000"){
 role="cashier";
 }
 else{
-alert("ผิด");
+alert("Login ผิด");
 return;
 }
 
-document.getElementById("loginPage").classList.add("hidden");
-document.getElementById("posPage").classList.remove("hidden");
+loginPage.classList.add("hidden");
+posPage.classList.remove("hidden");
 
-document.getElementById("roleText").innerText=role;
+roleText.innerText=role;
 
 if(role=="admin"){
-document.getElementById("adminPanel").classList.remove("hidden");
+adminPanel.classList.remove("hidden");
 }
 
 renderProducts();
+renderReport();
 
 }
 
+
+// LOGOUT
 function logout(){
-
 location.reload();
-
 }
 
+
+// PRODUCTS
 function renderProducts(){
 
-let list=document.getElementById("productList");
-list.innerHTML="";
+productList.innerHTML="";
 
 products.forEach(p=>{
 
@@ -226,19 +268,20 @@ div.innerText=p.name+" - "+p.price+" บาท";
 
 div.onclick=()=>addCart(p);
 
-list.appendChild(div);
+productList.appendChild(div);
 
 });
 
 }
 
+
+// SEARCH
 function search(text){
 
-let filtered=products.filter(p=>p.name.includes(text));
+let filtered=
+products.filter(p=>p.name.includes(text));
 
-let list=document.getElementById("productList");
-
-list.innerHTML="";
+productList.innerHTML="";
 
 filtered.forEach(p=>{
 
@@ -246,16 +289,18 @@ let div=document.createElement("div");
 
 div.className="product";
 
-div.innerText=p.name+" - "+p.price+" บาท";
+div.innerText=p.name+" - "+p.price;
 
 div.onclick=()=>addCart(p);
 
-list.appendChild(div);
+productList.appendChild(div);
 
 });
 
 }
 
+
+// CART
 function addCart(p){
 
 cart.push(p);
@@ -264,15 +309,16 @@ renderCart();
 
 }
 
+
 function renderCart(){
 
-let c=document.getElementById("cart");
-
-c.innerHTML="";
+cart.innerHTML="";
 
 let total=0;
 
-cart.forEach((p,i)=>{
+document.getElementById("cart").innerHTML="";
+
+cart.forEach(p=>{
 
 total+=p.price;
 
@@ -280,54 +326,101 @@ let div=document.createElement("div");
 
 div.innerText=p.name+" "+p.price;
 
-c.appendChild(div);
+document.getElementById("cart").appendChild(div);
 
 });
 
-document.getElementById("total").innerText="รวม: "+total;
+document.getElementById("total").innerText=
+"รวม: "+total+" บาท";
 
 }
 
-function checkout(){
 
-let total=cart.reduce((a,b)=>a+b.price,0);
+// SHOW QR
+function showQR(){
+
+let total=
+cart.reduce((a,b)=>a+b.price,0);
+
+if(total==0){
+alert("ไม่มีสินค้า");
+return;
+}
+
+qrCard.classList.remove("hidden");
+
+qrTotal.innerText=
+"ยอดชำระ: "+total+" บาท";
+
+}
+
+
+// CONFIRM PAYMENT
+function confirmPayment(){
+
+let total=
+cart.reduce((a,b)=>a+b.price,0);
 
 sales.push(total);
 
-localStorage.setItem("sales",JSON.stringify(sales));
+localStorage.setItem(
+"sales",
+JSON.stringify(sales)
+);
 
 cart=[];
 
 renderCart();
 
-alert("ชำระเงินแล้ว");
+qrCard.classList.add("hidden");
+
+alert("ชำระเงินสำเร็จ");
 
 renderReport();
 
 }
 
+
+// CANCEL
+function cancelPayment(){
+
+qrCard.classList.add("hidden");
+
+}
+
+
+// ADMIN
 function addProduct(){
 
-let name=document.getElementById("pname").value;
-let price=parseFloat(document.getElementById("pprice").value);
+let name=pname.value;
+
+let price=parseFloat(pprice.value);
 
 products.push({name,price});
 
-localStorage.setItem("products",JSON.stringify(products));
+localStorage.setItem(
+"products",
+JSON.stringify(products)
+);
 
 renderProducts();
 
 }
 
+
+// REPORT
 function renderReport(){
 
-let total=sales.reduce((a,b)=>a+b,0);
+let total=
+sales.reduce((a,b)=>a+b,0);
 
-document.getElementById("report").innerText=
-"ยอดขายรวม: "+total;
+report.innerText=
+"ยอดขายรวม: "+total+" บาท";
 
 }
 
+
+// EXPORT
 function exportExcel(){
 
 let csv="ยอดขาย\n";
