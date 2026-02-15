@@ -26,13 +26,15 @@ box-shadow:0 3px 10px rgba(0,0,0,0.2);
 /* CONTAINER */
 .container{
 padding:20px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
 }
 
 /* CARD */
 .card{
 background:white;
 padding:15px;
-margin-bottom:15px;
 border-radius:10px;
 box-shadow:0 4px 12px rgba(0,0,0,0.15);
 }
@@ -43,17 +45,15 @@ background:#3498db;
 color:white;
 border:none;
 padding:10px;
-width:100%;
-margin-top:5px;
 cursor:pointer;
 border-radius:6px;
 font-weight:bold;
-transition:0.2s;
+margin-top:5px;
+width:100%;
 }
 
 button:hover{
 background:#2980b9;
-transform:scale(1.02);
 }
 
 /* DELETE BUTTON */
@@ -89,7 +89,7 @@ border:1px solid #ccc;
 /* LOGIN */
 .login-box{
 width:300px;
-margin:100px auto;
+margin:120px auto;
 background:white;
 padding:20px;
 border-radius:10px;
@@ -103,12 +103,10 @@ background:#ecf0f1;
 margin:5px;
 cursor:pointer;
 border-radius:5px;
-transition:0.2s;
 }
 
 .product:hover{
 background:#d0d7de;
-transform:scale(1.02);
 }
 
 /* CART ITEM */
@@ -133,7 +131,7 @@ margin-top:10px;
 }
 
 .payTotal{
-font-size:20px;
+font-size:22px;
 margin:10px;
 color:#e74c3c;
 font-weight:bold;
@@ -153,9 +151,8 @@ display:none;
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
+<!-- LOGIN -->
 <div id="loginPage">
-
 <div class="login-box">
 
 <h2>🔐 Login POS</h2>
@@ -166,19 +163,17 @@ display:none;
 <button onclick="login()">Login</button>
 
 </div>
-
 </div>
 
 
-<!-- POS PAGE -->
+<!-- POS -->
 <div id="posPage" class="hidden">
 
 <div class="header">
-
 <div>🛒 MP SHOP POS PRO MAX</div>
 
 <div>
-<span id="roleText" class="role"></span>
+<span id="roleText"></span>
 <button onclick="logout()">Logout</button>
 </div>
 
@@ -187,7 +182,7 @@ display:none;
 
 <div class="container">
 
-<!-- SEARCH -->
+<!-- PRODUCTS -->
 <div class="card">
 
 <h3>ค้นหา</h3>
@@ -206,11 +201,35 @@ display:none;
 
 <div id="cart"></div>
 
-<div id="total">รวม: 0 บาท</div>
+<h3 id="totalText">รวม: 0 บาท</h3>
 
 <button onclick="showQR()">ชำระเงิน</button>
 
 <button class="clearBtn" onclick="clearCart()">🗑️ ลบทั้งหมด</button>
+
+</div>
+
+
+<!-- ADMIN -->
+<div id="adminPanel" class="card hidden">
+
+<h3>เพิ่มสินค้า (Admin)</h3>
+
+<input id="pname" placeholder="ชื่อสินค้า">
+<input id="pprice" type="number" placeholder="ราคา">
+
+<button onclick="addProduct()">เพิ่มสินค้า</button>
+
+<hr>
+
+<h3>รายงาน</h3>
+
+<div id="report"></div>
+
+<button onclick="exportExcel()">Export Excel</button>
+
+</div>
+
 
 </div>
 
@@ -235,41 +254,13 @@ display:none;
 </div>
 
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel" class="hidden">
-
-<div class="card">
-
-<h3>เพิ่มสินค้า (Admin)</h3>
-
-<input id="pname" placeholder="ชื่อสินค้า">
-<input id="pprice" type="number" placeholder="ราคา">
-
-<button onclick="addProduct()">เพิ่มสินค้า</button>
-
 </div>
 
-
-<div class="card">
-
-<h3>รายงาน</h3>
-
-<div id="report"></div>
-
-<button onclick="exportExcel()">Export Excel</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
 
 
 <script>
 
-/* LOGIN SECURITY */
+/* LOGIN */
 
 const ADMIN_USER="admin";
 const ADMIN_PASS="****";
@@ -303,27 +294,37 @@ let u=document.getElementById("user").value;
 let p=document.getElementById("pass").value;
 
 if(u===ADMIN_USER && p===ADMIN_PASS){
+
 role="admin";
+
+adminPanel.classList.remove("hidden");
+
 }
+
 else if(u===CASHIER_USER && p===CASHIER_PASS){
+
 role="cashier";
+
 }
+
 else{
-alert("❌ Username หรือ Password ผิด");
+
+alert("❌ Login ผิด");
+
 return;
+
 }
 
 loginPage.classList.add("hidden");
+
 posPage.classList.remove("hidden");
 
 roleText.innerText="👤 "+role;
 
-if(role==="admin"){
-adminPanel.classList.remove("hidden");
-}
-
 renderProducts();
+
 renderCart();
+
 renderReport();
 
 }
@@ -332,7 +333,9 @@ renderReport();
 /* LOGOUT */
 
 function logout(){
+
 location.reload();
+
 }
 
 
@@ -340,11 +343,11 @@ location.reload();
 
 function renderProducts(){
 
-let list=document.getElementById("productList");
+let box=document.getElementById("productList");
 
-list.innerHTML="";
+box.innerHTML="";
 
-products.forEach(p=>{
+products.forEach((p,i)=>{
 
 let div=document.createElement("div");
 
@@ -352,9 +355,9 @@ div.className="product";
 
 div.innerText=p.name+" - "+p.price+" บาท";
 
-div.onclick=()=>addCart(p);
+div.onclick=()=>addCart(i);
 
-list.appendChild(div);
+box.appendChild(div);
 
 });
 
@@ -363,13 +366,13 @@ list.appendChild(div);
 
 function search(text){
 
-let list=document.getElementById("productList");
+let box=document.getElementById("productList");
 
-list.innerHTML="";
+box.innerHTML="";
 
 products
 .filter(p=>p.name.includes(text))
-.forEach(p=>{
+.forEach((p,i)=>{
 
 let div=document.createElement("div");
 
@@ -377,9 +380,9 @@ div.className="product";
 
 div.innerText=p.name+" - "+p.price+" บาท";
 
-div.onclick=()=>addCart(p);
+div.onclick=()=>addCart(i);
 
-list.appendChild(div);
+box.appendChild(div);
 
 });
 
@@ -388,9 +391,9 @@ list.appendChild(div);
 
 /* CART */
 
-function addCart(p){
+function addCart(index){
 
-cartData.push(p);
+cartData.push(products[index]);
 
 renderCart();
 
@@ -409,29 +412,27 @@ cartData.forEach((p,index)=>{
 
 total+=p.price;
 
-let div=document.createElement("div");
+let row=document.createElement("div");
 
-div.className="cartItem";
+row.className="cartItem";
 
-div.innerHTML=
+row.innerHTML=
 `
 <span>${p.name} ${p.price} บาท</span>
 <button class="deleteBtn" onclick="removeItem(${index})">ลบ</button>
 `;
 
-cart.appendChild(div);
+cart.appendChild(row);
 
 });
 
-total.innerText="รวม: "+total+" บาท";
-
-document.getElementById("total").innerText=
+document.getElementById("totalText").innerText=
 "รวม: "+total+" บาท";
 
 }
 
 
-/* REMOVE ITEM */
+/* REMOVE */
 
 function removeItem(index){
 
@@ -442,7 +443,7 @@ renderCart();
 }
 
 
-/* CLEAR CART */
+/* CLEAR */
 
 function clearCart(){
 
@@ -457,11 +458,14 @@ renderCart();
 
 function showQR(){
 
-let total=cartData.reduce((a,b)=>a+b.price,0);
+let total=cartData.reduce((sum,p)=>sum+p.price,0);
 
 if(total===0){
+
 alert("ไม่มีสินค้า");
+
 return;
+
 }
 
 qrCard.classList.remove("hidden");
@@ -473,7 +477,7 @@ qrTotal.innerText="ยอดชำระ: "+total+" บาท";
 
 function confirmPayment(){
 
-let total=cartData.reduce((a,b)=>a+b.price,0);
+let total=cartData.reduce((sum,p)=>sum+p.price,0);
 
 sales.push(total);
 
@@ -485,7 +489,7 @@ renderCart();
 
 qrCard.classList.add("hidden");
 
-alert("✅ ชำระเงินสำเร็จ");
+alert("ชำระเงินสำเร็จ");
 
 renderReport();
 
@@ -508,8 +512,11 @@ let name=pname.value;
 let price=parseFloat(pprice.value);
 
 if(!name || !price){
-alert("กรอกข้อมูลให้ครบ");
+
+alert("กรอกข้อมูล");
+
 return;
+
 }
 
 products.push({name,price});
@@ -527,7 +534,7 @@ alert("เพิ่มสินค้าแล้ว");
 
 function renderReport(){
 
-let total=sales.reduce((a,b)=>a+b,0);
+let total=sales.reduce((sum,p)=>sum+p,0);
 
 report.innerText="ยอดขายรวม: "+total+" บาท";
 
@@ -558,4 +565,3 @@ a.click();
 
 </body>
 </html>
-
