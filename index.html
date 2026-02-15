@@ -2,47 +2,53 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MP SHOP PRO</title>
+<title>MP SHOP POS</title>
 
 <link rel="stylesheet" href="style.css">
+
 </head>
 <body>
 
-<div class="app">
+<div class="container">
 
-<div class="sidebar">
+<h1>🧾 MP SHOP POS SYSTEM</h1>
 
-<h2>MP SHOP PRO</h2>
+<div class="layout">
 
-<button onclick="showPage('sales')">🛒 ขายสินค้า</button>
-<button onclick="showPage('products')">📦 จัดการสินค้า</button>
-<button onclick="showPage('report')">📊 รายงาน</button>
+<!-- LEFT -->
+<div class="left">
+
+<h2>เพิ่มสินค้า</h2>
+
+<input id="pname" placeholder="ชื่อสินค้า">
+<input id="pprice" type="number" placeholder="ราคา">
+
+<select id="pcat">
+<option value="อาหาร">อาหาร</option>
+<option value="เครื่องดื่ม">เครื่องดื่ม</option>
+<option value="ของใช้">ของใช้</option>
+<option value="อื่นๆ">อื่นๆ</option>
+</select>
+
+<button onclick="addProduct()">เพิ่มสินค้า</button>
+
+<h2>รายการสินค้า</h2>
+
+<div id="productList"></div>
 
 </div>
 
-<div class="main">
+<!-- RIGHT -->
+<div class="right">
 
-<!-- SALES PAGE -->
-<div id="salesPage">
-
-<h1>หน้าขายสินค้า</h1>
-
-<input type="text" id="search" placeholder="ค้นหาสินค้า..." onkeyup="renderProducts()">
-
-<div id="productList" class="grid"></div>
-
-<h2>ตะกร้าสินค้า</h2>
+<h2>ตะกร้า</h2>
 
 <table>
-
 <thead>
 <tr>
 <th>สินค้า</th>
 <th>ราคา</th>
-<th>จำนวน</th>
-<th>รวม</th>
-<th></th>
+<th>ลบ</th>
 </tr>
 </thead>
 
@@ -52,53 +58,16 @@
 
 <h3>รวม: <span id="total">0</span> บาท</h3>
 
-<input type="number" id="money" placeholder="รับเงิน">
+<input id="money" type="number" placeholder="รับเงิน">
 
 <button onclick="pay()">ชำระเงิน</button>
-<button onclick="printReceipt()">พิมพ์ใบเสร็จ</button>
 
-<div id="change"></div>
-
-</div>
-
-
-<!-- PRODUCT PAGE -->
-<div id="productsPage" class="hidden">
-
-<h1>จัดการสินค้า</h1>
-
-<input id="pname" placeholder="ชื่อสินค้า">
-<input id="pprice" type="number" placeholder="ราคา">
-
-<button onclick="addProduct()">เพิ่มสินค้า</button>
-
-<table>
-
-<thead>
-<tr>
-<th>สินค้า</th>
-<th>ราคา</th>
-<th></th>
-</tr>
-</thead>
-
-<tbody id="productTable"></tbody>
-
-</table>
-
-</div>
-
-
-<!-- REPORT PAGE -->
-<div id="reportPage" class="hidden">
-
-<h1>รายงาน</h1>
-
-<h3>ยอดขายทั้งหมด: <span id="salesTotal">0</span> บาท</h3>
+<h3 id="change"></h3>
 
 </div>
 
 </div>
+
 </div>
 
 <script src="script.js"></script>
