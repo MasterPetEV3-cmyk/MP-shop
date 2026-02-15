@@ -1,59 +1,86 @@
+```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>MP Shop Demo</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MP SHOP POS PRO</title>
 
 <style>
 body{
-    font-family: Arial;
-    background:#f4f6f8;
-    margin:0;
+font-family: Arial;
+background:#f4f6f9;
+margin:0;
 }
 
 header{
-    background:#1e88e5;
-    color:white;
-    padding:15px;
+background:#2c3e50;
+color:white;
+padding:15px;
+display:flex;
+justify-content:space-between;
 }
 
 .container{
-    padding:20px;
+display:flex;
+gap:20px;
+padding:20px;
 }
 
 .card{
-    background:white;
-    padding:15px;
-    margin-bottom:15px;
-    border-radius:10px;
-    box-shadow:0 2px 5px rgba(0,0,0,0.2);
+background:white;
+padding:15px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+flex:1;
 }
 
 button{
-    padding:10px 15px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
+background:#3498db;
+color:white;
+border:none;
+padding:10px;
+margin:5px 0;
+cursor:pointer;
+width:100%;
 }
 
-.admin{
-    background:#e53935;
-    color:white;
+button:hover{
+background:#2980b9;
 }
 
-.cashier{
-    background:#43a047;
-    color:white;
+input,select{
+width:100%;
+padding:8px;
+margin:5px 0;
+}
+
+.product{
+border:1px solid #ddd;
+padding:10px;
+margin:5px;
+cursor:pointer;
+}
+
+.product:hover{
+background:#ecf0f1;
 }
 
 .hidden{
-    display:none;
+display:none;
 }
 
-input{
-    padding:8px;
-    margin:5px;
+.adminOnly{
+display:none;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+td,th{
+padding:8px;
+border-bottom:1px solid #ddd;
 }
 </style>
 
@@ -61,116 +88,309 @@ input{
 <body>
 
 <header>
-<h2>MP Shop System Demo</h2>
-</header>
 
-<div class="container">
+<div>
+🛒 MP SHOP POS PRO
+</div>
 
-<!-- LOGIN -->
-<div class="card" id="loginBox">
-<h3>เข้าสู่ระบบ</h3>
-
-<select id="role">
+<div>
+<select id="roleSelect" onchange="changeRole()">
 <option value="cashier">Cashier</option>
 <option value="admin">Admin</option>
 </select>
 
-<br><br>
+</div>
 
-<button onclick="login()">เข้าสู่ระบบ</button>
+</header>
+
+<div class="container">
+
+<!-- LEFT -->
+
+<div class="card">
+
+<h3>ค้นหา</h3>
+
+<input id="search" placeholder="ค้นหา..." onkeyup="renderProducts()">
+
+<div id="productList"></div>
 
 </div>
 
+<!-- RIGHT -->
 
-<!-- CASHIER PANEL -->
-<div class="card hidden" id="cashierPanel">
+<div class="card">
 
-<h3>ระบบขายสินค้า (Cashier)</h3>
+<h3>ตะกร้า</h3>
 
-<input id="product" placeholder="ชื่อสินค้า">
-<input id="price" placeholder="ราคา" type="number">
+<table>
+<thead>
+<tr>
+<th>สินค้า</th>
+<th>ราคา</th>
+<th>ลบ</th>
+</tr>
+</thead>
+<tbody id="cartTable"></tbody>
+</table>
 
-<button class="cashier" onclick="addSale()">ขายสินค้า</button>
+<h3 id="total">รวม: 0 บาท</h3>
 
-<p id="saleOutput"></p>
+<button onclick="checkout()">ชำระเงิน</button>
 
 </div>
 
+</div>
 
 <!-- ADMIN PANEL -->
-<div class="card hidden" id="adminPanel">
 
-<h3>ระบบหลังบ้าน (Admin Only)</h3>
+<div class="container adminOnly" id="adminPanel">
 
-<button class="admin" onclick="viewLogs()">ดู Logs</button>
+<div class="card">
 
-<p id="adminOutput"></p>
+<h3>เพิ่มสินค้า (Admin)</h3>
+
+<input id="pname" placeholder="ชื่อสินค้า">
+
+<input id="pprice" type="number" placeholder="ราคา">
+
+<button onclick="addProduct()">เพิ่มสินค้า</button>
 
 </div>
 
+<div class="card">
+
+<h3>รายงานวันนี้ (Admin)</h3>
+
+<p id="reportSales">ยอดขาย: 0</p>
+
+<p id="reportItems">จำนวน: 0</p>
+
+<button onclick="exportCSV()">Export Excel</button>
 
 </div>
 
+</div>
 
 <script>
 
-let currentRole = "cashier"
+/* DATABASE */
 
-let logs = []
+let db = JSON.parse(localStorage.getItem("MP_DB")) || {
 
-function login(){
+products:[
+{name:"โค้ก",price:15},
+{name:"น้ำ",price:10}
+],
 
-    currentRole = document.getElementById("role").value
+sales:[]
 
-    document.getElementById("loginBox").classList.add("hidden")
+};
 
-    document.getElementById("cashierPanel").classList.remove("hidden")
+let cart=[];
 
-    // ADMIN เท่านั้นเห็น adminPanel
-    if(currentRole === "admin"){
-        document.getElementById("adminPanel").classList.remove("hidden")
-    }
+let role="cashier";
 
-}
+/* SAVE */
 
-function addSale(){
+function save(){
 
-    let product = document.getElementById("product").value
-    let price = document.getElementById("price").value
-
-    if(product === "" || price === ""){
-        alert("กรอกข้อมูลก่อน")
-        return
-    }
-
-    let text = product + " ราคา " + price + " บาท"
-
-    document.getElementById("saleOutput").innerText =
-        "ขายแล้ว: " + text
-
-    logs.push(text)
+localStorage.setItem("MP_DB",JSON.stringify(db));
 
 }
 
-function viewLogs(){
+/* ROLE */
 
-    if(currentRole !== "admin"){
-        alert("ไม่มีสิทธิ์")
-        return
-    }
+function changeRole(){
 
-    let text = ""
+role=document.getElementById("roleSelect").value;
 
-    for(let i=0;i<logs.length;i++){
-        text += logs[i] + "\n"
-    }
+if(role=="admin"){
 
-    document.getElementById("adminOutput").innerText = text
+document.querySelectorAll(".adminOnly").forEach(e=>e.style.display="flex");
+
+}else{
+
+document.querySelectorAll(".adminOnly").forEach(e=>e.style.display="none");
 
 }
+
+}
+
+/* PRODUCTS */
+
+function renderProducts(){
+
+let html="";
+
+let search=document.getElementById("search").value;
+
+db.products.forEach((p,i)=>{
+
+if(p.name.includes(search)){
+
+html+=`
+<div class="product" onclick="addToCart(${i})">
+${p.name} - ${p.price} บาท
+</div>
+`;
+
+}
+
+});
+
+document.getElementById("productList").innerHTML=html;
+
+}
+
+/* ADD PRODUCT */
+
+function addProduct(){
+
+if(role!="admin") return;
+
+let name=document.getElementById("pname").value;
+
+let price=parseFloat(document.getElementById("pprice").value);
+
+db.products.push({name,price});
+
+save();
+
+renderProducts();
+
+}
+
+/* CART */
+
+function addToCart(i){
+
+cart.push(db.products[i]);
+
+renderCart();
+
+}
+
+function renderCart(){
+
+let html="";
+
+let total=0;
+
+cart.forEach((c,i)=>{
+
+total+=c.price;
+
+html+=`
+<tr>
+<td>${c.name}</td>
+<td>${c.price}</td>
+<td><button onclick="removeCart(${i})">X</button></td>
+</tr>
+`;
+
+});
+
+document.getElementById("cartTable").innerHTML=html;
+
+document.getElementById("total").innerText="รวม: "+total+" บาท";
+
+}
+
+/* REMOVE */
+
+function removeCart(i){
+
+cart.splice(i,1);
+
+renderCart();
+
+}
+
+/* CHECKOUT */
+
+function checkout(){
+
+if(cart.length==0) return;
+
+db.sales.push({
+
+date:new Date().toLocaleDateString(),
+
+items:cart,
+
+total:cart.reduce((a,b)=>a+b.price,0)
+
+});
+
+cart=[];
+
+save();
+
+renderCart();
+
+renderReport();
+
+}
+
+/* REPORT */
+
+function renderReport(){
+
+let total=0;
+
+let items=0;
+
+db.sales.forEach(s=>{
+
+total+=s.total;
+
+items+=s.items.length;
+
+});
+
+document.getElementById("reportSales").innerText="ยอดขาย: "+total;
+
+document.getElementById("reportItems").innerText="จำนวน: "+items;
+
+}
+
+/* EXPORT */
+
+function exportCSV(){
+
+let csv="date,total\n";
+
+db.sales.forEach(s=>{
+
+csv+=s.date+","+s.total+"\n";
+
+});
+
+let blob=new Blob([csv]);
+
+let a=document.createElement("a");
+
+a.href=URL.createObjectURL(blob);
+
+a.download="report.csv";
+
+a.click();
+
+}
+
+/* INIT */
+
+changeRole();
+
+renderProducts();
+
+renderCart();
+
+renderReport();
 
 </script>
 
-
 </body>
 </html>
+```
