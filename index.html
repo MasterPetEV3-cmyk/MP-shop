@@ -15,7 +15,7 @@ body {
 
 .container {
     background: white;
-    max-width: 800px;
+    max-width: 900px;
     margin: auto;
     padding: 20px;
     border-radius: 15px;
@@ -35,7 +35,7 @@ input {
 }
 
 button {
-    padding: 10px 15px;
+    padding: 8px 12px;
     border: none;
     border-radius: 8px;
     background: #6a0dad;
@@ -61,7 +61,7 @@ th {
 }
 
 td {
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     border-bottom: 1px solid #ddd;
 }
@@ -86,9 +86,14 @@ td {
 .clear-btn:hover {
     background: darkred;
 }
-</style>
 
+.small-btn {
+    padding: 4px 8px;
+    font-size: 14px;
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
@@ -107,11 +112,12 @@ td {
 <th>ราคา</th>
 <th>จำนวน</th>
 <th>รวม</th>
+<th>จัดการ</th>
 </tr>
 </table>
 
 <div class="total">
-รวมทั้งหมด: <span id="total">0</span> บาท
+รวมทั้งหมด: <span id="total">0.00</span> บาท
 </div>
 
 <hr>
@@ -119,15 +125,25 @@ td {
 <input type="number" id="money" placeholder="รับเงิน">
 
 <button onclick="calculateChange()">คำนวณเงินทอน</button>
+<button onclick="printReceipt()">พิมพ์ใบเสร็จ</button>
 <button class="clear-btn" onclick="clearAll()">ล้างทั้งหมด</button>
 
 <div class="result" id="change"></div>
+
+<div class="result">
+ยอดขายวันนี้: <span id="daily">0.00</span> บาท
+</div>
 
 </div>
 
 <script>
 
 let total = 0;
+let dailySales = localStorage.getItem("dailySales") 
+    ? parseFloat(localStorage.getItem("dailySales")) 
+    : 0;
+
+document.getElementById("daily").innerText = dailySales.toFixed(2);
 
 function addItem() {
 
@@ -135,8 +151,8 @@ function addItem() {
     let price = parseFloat(document.getElementById("price").value);
     let qty = parseInt(document.getElementById("qty").value);
 
-    if(name === "" || isNaN(price) || isNaN(qty)) {
-        alert("กรอกข้อมูลให้ครบ");
+    if(name === "" || isNaN(price) || isNaN(qty) || price <= 0 || qty <= 0) {
+        alert("กรอกข้อมูลให้ถูกต้อง");
         return;
     }
 
@@ -144,19 +160,67 @@ function addItem() {
     total += sum;
 
     let table = document.getElementById("table");
-
     let row = table.insertRow();
 
     row.insertCell(0).innerText = name;
-    row.insertCell(1).innerText = price;
-    row.insertCell(2).innerText = qty;
-    row.insertCell(3).innerText = sum;
+    row.insertCell(1).innerText = price.toFixed(2);
 
-    document.getElementById("total").innerText = total;
+    let qtyCell = row.insertCell(2);
+    qtyCell.innerHTML = `
+        <button class="small-btn" onclick="changeQty(this, -1)">-</button>
+        ${qty}
+        <button class="small-btn" onclick="changeQty(this, 1)">+</button>
+    `;
+
+    row.insertCell(3).innerText = sum.toFixed(2);
+
+    let actionCell = row.insertCell(4);
+    actionCell.innerHTML = `
+        <button class="small-btn" onclick="removeRow(this)">ลบ</button>
+    `;
+
+    updateTotal();
 
     document.getElementById("name").value = "";
     document.getElementById("price").value = "";
     document.getElementById("qty").value = "";
+}
+
+function changeQty(button, change) {
+    let row = button.parentElement.parentElement;
+    let price = parseFloat(row.cells[1].innerText);
+    let currentQty = parseInt(button.parentElement.childNodes[2].nodeValue.trim());
+    let newQty = currentQty + change;
+
+    if(newQty <= 0) return;
+
+    button.parentElement.childNodes[2].nodeValue = " " + newQty + " ";
+
+    let newSum = price * newQty;
+    row.cells[3].innerText = newSum.toFixed(2);
+
+    recalculateTotal();
+}
+
+function removeRow(button) {
+    let row = button.parentElement.parentElement;
+    row.remove();
+    recalculateTotal();
+}
+
+function recalculateTotal() {
+    total = 0;
+    let table = document.getElementById("table");
+
+    for(let i = 1; i < table.rows.length; i++) {
+        total += parseFloat(table.rows[i].cells[3].innerText);
+    }
+
+    updateTotal();
+}
+
+function updateTotal() {
+    document.getElementById("total").innerText = total.toFixed(2);
 }
 
 function calculateChange() {
@@ -169,21 +233,38 @@ function calculateChange() {
     }
 
     if(money < total) {
-        document.getElementById("change").innerText =
-        "เงินไม่พอ!";
+        document.getElementById("change").innerText = "เงินไม่พอ!";
     }
     else {
         let change = money - total;
 
         document.getElementById("change").innerText =
-        "เงินทอน: " + change + " บาท";
+        "เงินทอน: " + change.toFixed(2) + " บาท";
+
+        dailySales += total;
+        localStorage.setItem("dailySales", dailySales);
+        document.getElementById("daily").innerText = dailySales.toFixed(2);
     }
 }
 
+function printReceipt() {
+    window.print();
+}
+
 function clearAll() {
-
-    location.reload();
-
+    document.getElementById("table").innerHTML = `
+        <tr>
+        <th>สินค้า</th>
+        <th>ราคา</th>
+        <th>จำนวน</th>
+        <th>รวม</th>
+        <th>จัดการ</th>
+        </tr>
+    `;
+    total = 0;
+    updateTotal();
+    document.getElementById("change").innerText = "";
+    document.getElementById("money").value = "";
 }
 
 </script>
