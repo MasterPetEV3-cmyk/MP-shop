@@ -7,141 +7,89 @@
 <style>
 
 body{
-font-family:'Segoe UI',sans-serif;
-background:linear-gradient(135deg,#eef2f7,#dbe6f6);
+font-family:Arial;
+background:#f4f6f8;
 margin:0;
 }
 
-/* HEADER */
-
 .header{
-background:linear-gradient(90deg,#1f2a44,#2c3e50);
+background:#2c3e50;
 color:white;
-padding:15px 25px;
+padding:15px;
 display:flex;
 justify-content:space-between;
 align-items:center;
-box-shadow:0 4px 12px rgba(0,0,0,0.2);
 }
-
-.role{
-background:#34495e;
-padding:5px 12px;
-border-radius:20px;
-margin-right:10px;
-}
-
-/* LAYOUT */
 
 .container{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:20px;
-padding:20px;
+gap:15px;
+padding:15px;
 }
-
-/* CARD */
 
 .card{
 background:white;
 padding:15px;
-border-radius:12px;
-box-shadow:0 8px 20px rgba(0,0,0,0.1);
+border-radius:8px;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* BUTTON */
-
 button{
+background:#3498db;
+color:white;
 border:none;
 padding:10px;
-border-radius:8px;
+width:100%;
+margin-top:5px;
 cursor:pointer;
-font-weight:bold;
-transition:0.2s;
 }
 
 button:hover{
-transform:scale(1.05);
-}
-
-/* COLORS */
-
-.btn-blue{
-background:#3498db;
-color:white;
-width:100%;
-}
-
-.btn-red{
-background:#e74c3c;
-color:white;
-margin-left:10px;
-}
-
-.btn-green{
-background:#2ecc71;
-color:white;
-width:100%;
-}
-
-/* PRODUCT */
-
-.product{
-background:#f1f3f6;
-padding:12px;
-margin-top:8px;
-border-radius:8px;
-cursor:pointer;
-transition:0.2s;
-}
-
-.product:hover{
-background:#dfe6ee;
-transform:scale(1.02);
-}
-
-/* CART ITEM */
-
-.cart-item{
-display:flex;
-justify-content:space-between;
-align-items:center;
-background:#f8f9fb;
-padding:8px;
-margin-top:5px;
-border-radius:6px;
-}
-
-/* LOGIN */
-
-.login-box{
-width:320px;
-margin:120px auto;
-background:white;
-padding:25px;
-border-radius:12px;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
+background:#2980b9;
 }
 
 input{
 width:100%;
-padding:10px;
-margin-top:8px;
-border-radius:8px;
-border:1px solid #ccc;
-}
-
-/* TOTAL */
-
-.total{
-font-size:20px;
-font-weight:bold;
-margin-top:10px;
-color:#e74c3c;
+padding:8px;
+margin-top:5px;
 }
 
 .hidden{
 display:none;
+}
+
+.product{
+background:#ecf0f1;
+padding:8px;
+margin-top:5px;
+cursor:pointer;
+}
+
+.product:hover{
+background:#d0d7de;
+}
+
+.qrBox{
+text-align:center;
+}
+
+.qrBox img{
+width:200px;
+}
+
+.payTotal{
+font-size:22px;
+margin:10px;
+font-weight:bold;
+}
+
+.login{
+max-width:300px;
+margin:100px auto;
+background:white;
+padding:20px;
+border-radius:8px;
 }
 
 </style>
@@ -149,39 +97,35 @@ display:none;
 </head>
 <body>
 
-
 <!-- LOGIN -->
+<div id="loginPage" class="login">
 
-<div id="loginPage">
+<h3>เข้าสู่ระบบ</h3>
 
-<div class="login-box">
+<select id="role">
 
-<h2>🔐 Login POS</h2>
+<option value="cashier">Cashier</option>
+<option value="admin">Admin</option>
 
-<input id="user" placeholder="Username">
-<input id="pass" type="password" placeholder="Password">
+</select>
 
-<button class="btn-blue" onclick="login()">Login</button>
+<input id="password" type="password" placeholder="รหัสผ่าน">
+
+<button onclick="login()">เข้าสู่ระบบ</button>
 
 </div>
 
-</div>
 
-
-<!-- POS -->
-
-<div id="posPage" class="hidden">
+<!-- MAIN SYSTEM -->
+<div id="mainPage" class="hidden">
 
 <div class="header">
 
-<div>🛒 MP SHOP POS PRO MAX</div>
+<div>MP SHOP POS PRO MAX</div>
 
 <div>
-
-<span id="roleText" class="role"></span>
-
-<button class="btn-red" onclick="logout()">Logout</button>
-
+<span id="userLabel"></span>
+<button onclick="logout()">Logout</button>
 </div>
 
 </div>
@@ -189,14 +133,12 @@ display:none;
 
 <div class="container">
 
-
-<!-- PRODUCT -->
-
+<!-- PRODUCTS -->
 <div class="card">
 
-<h3>สินค้า</h3>
+<h3>ค้นหา</h3>
 
-<input oninput="search(this.value)" placeholder="ค้นหา...">
+<input id="search" placeholder="ค้นหา..." onkeyup="renderProducts()">
 
 <div id="productList"></div>
 
@@ -204,91 +146,123 @@ display:none;
 
 
 <!-- CART -->
-
 <div class="card">
 
 <h3>ตะกร้า</h3>
 
-<div id="cart"></div>
+<div id="cartList"></div>
 
-<div class="total" id="total">รวม: 0 บาท</div>
+<h3 id="total">รวม: 0 บาท</h3>
 
-<button class="btn-green" onclick="showQR()">ชำระเงิน</button>
-
-<button class="btn-red" onclick="clearCart()">ลบทั้งหมด</button>
+<button onclick="showQR()">ชำระเงิน</button>
 
 </div>
 
 
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="card hidden">
+
+<h3>เพิ่มสินค้า (Admin)</h3>
+
+<input id="newName" placeholder="ชื่อสินค้า">
+<input id="newPrice" placeholder="ราคา">
+
+<button onclick="addProduct()">เพิ่มสินค้า</button>
+
 </div>
+
+
+<!-- REPORT -->
+<div id="reportPanel" class="card hidden">
+
+<h3>รายงาน (Admin)</h3>
+
+<div id="reportText"></div>
+
+<button onclick="exportExcel()">Export Excel</button>
+
+</div>
+
+</div>
+
+
+<!-- QR -->
+<div id="qrCard" class="card hidden">
+
+<div class="qrBox">
+
+<h3>สแกนเพื่อชำระเงิน</h3>
+
+<img src="promptpay.jpg">
+
+<div id="qrTotal" class="payTotal"></div>
+
+<button onclick="confirmPayment()">ชำระเงินเสร็จแล้ว</button>
+
+<button onclick="cancelPayment()">ยกเลิก</button>
+
+</div>
+
+</div>
+
 
 </div>
 
 
 <script>
 
-/* LOGIN */
+/* ======================
+DATABASE
+====================== */
 
-const ADMIN_USER="admin";
-const ADMIN_PASS="****";
-
-const CASHIER_USER="cashier";
-const CASHIER_PASS="****";
-
-let role="";
-
-/* DATA */
-
-let products=
-JSON.parse(localStorage.getItem("products")) ||
-[
+let products = JSON.parse(localStorage.getItem("products")) || [
 {name:"โค้ก",price:15},
 {name:"น้ำ",price:10}
 ];
 
-let cartData=[];
+let cart = [];
+
+let sales = JSON.parse(localStorage.getItem("sales")) || [];
+
+let role = "";
 
 
-/* LOGIN */
+/* ======================
+LOGIN
+====================== */
 
 function login(){
 
-let u=user.value;
-let p=pass.value;
+let r = document.getElementById("role").value;
+let pass = document.getElementById("password").value;
 
-if(u===ADMIN_USER && p===ADMIN_PASS){
-
-role="admin";
-
-}
-
-else if(u===CASHIER_USER && p===CASHIER_PASS){
-
-role="cashier";
-
-}
-
-else{
-
-alert("Login ผิด");
-
+if(r==="admin" && pass!=="9999"){
+alert("รหัส admin ผิด");
 return;
-
 }
 
-loginPage.classList.add("hidden");
+if(r==="cashier" && pass!=="1111"){
+alert("รหัส cashier ผิด");
+return;
+}
 
-posPage.classList.remove("hidden");
+role=r;
 
-roleText.innerText="👤 "+role;
+document.getElementById("loginPage").classList.add("hidden");
+document.getElementById("mainPage").classList.remove("hidden");
+
+document.getElementById("userLabel").innerText=r;
+
+if(role==="admin"){
+document.getElementById("adminPanel").classList.remove("hidden");
+document.getElementById("reportPanel").classList.remove("hidden");
+}
 
 renderProducts();
 renderCart();
+renderReport();
 
 }
-
-
-/* LOGOUT */
 
 function logout(){
 
@@ -297,133 +271,159 @@ location.reload();
 }
 
 
-/* PRODUCT */
+/* ======================
+PRODUCT
+====================== */
 
 function renderProducts(){
 
-productList.innerHTML="";
+let box=document.getElementById("productList");
 
-products.forEach(p=>{
+box.innerHTML="";
 
-let div=document.createElement("div");
+let search=document.getElementById("search").value.toLowerCase();
 
-div.className="product";
+products.forEach((p,i)=>{
 
-div.innerText=`${p.name} - ${p.price} บาท`;
+if(p.name.toLowerCase().includes(search)){
 
-div.onclick=()=>addCart(p);
+box.innerHTML+=
+`<div class="product" onclick="addCart(${i})">
+${p.name} - ${p.price} บาท
+</div>`;
 
-productList.appendChild(div);
+}
 
 });
 
 }
 
+function addProduct(){
 
-function search(text){
+let name=document.getElementById("newName").value;
+let price=parseFloat(document.getElementById("newPrice").value);
 
-productList.innerHTML="";
+products.push({name,price});
 
-products
-.filter(p=>p.name.includes(text))
-.forEach(p=>{
+localStorage.setItem("products",JSON.stringify(products));
 
-let div=document.createElement("div");
-
-div.className="product";
-
-div.innerText=`${p.name} - ${p.price} บาท`;
-
-div.onclick=()=>addCart(p);
-
-productList.appendChild(div);
-
-});
+renderProducts();
 
 }
 
 
-/* CART */
+/* ======================
+CART
+====================== */
 
-function addCart(p){
+function addCart(i){
 
-cartData.push(p);
+cart.push(products[i]);
 
 renderCart();
 
 }
-
 
 function renderCart(){
 
-cart.innerHTML="";
+let box=document.getElementById("cartList");
+
+box.innerHTML="";
 
 let total=0;
 
-cartData.forEach((p,index)=>{
+cart.forEach((p,i)=>{
 
 total+=p.price;
 
-let div=document.createElement("div");
-
-div.className="cart-item";
-
-div.innerHTML=`
-<span>${p.name} - ${p.price} บาท</span>
-<button class="btn-red" onclick="removeItem(${index})">ลบ</button>
-`;
-
-cart.appendChild(div);
+box.innerHTML+=`<div>${p.name} ${p.price}</div>`;
 
 });
 
-total.innerText;
-
-document.getElementById("total").innerText=
-"รวม: "+total+" บาท";
+document.getElementById("total").innerText="รวม: "+total+" บาท";
 
 }
 
 
-/* REMOVE */
-
-function removeItem(index){
-
-cartData.splice(index,1);
-
-renderCart();
-
-}
-
-
-/* CLEAR */
-
-function clearCart(){
-
-cartData=[];
-
-renderCart();
-
-}
-
-
-/* PAYMENT */
+/* ======================
+QR
+====================== */
 
 function showQR(){
 
-if(cartData.length===0){
+let total=cart.reduce((a,b)=>a+b.price,0);
 
+if(total===0){
 alert("ไม่มีสินค้า");
-
 return;
+}
+
+document.getElementById("qrCard").classList.remove("hidden");
+
+document.getElementById("qrTotal").innerText=
+"ยอดชำระ: "+total+" บาท";
 
 }
 
-alert("ระบบชำระเงิน (เพิ่ม QR ได้)");
+function confirmPayment(){
 
-cartData=[];
+let total=cart.reduce((a,b)=>a+b.price,0);
+
+sales.push(total);
+
+localStorage.setItem("sales",JSON.stringify(sales));
+
+cart=[];
 
 renderCart();
+
+document.getElementById("qrCard").classList.add("hidden");
+
+renderReport();
+
+alert("สำเร็จ");
+
+}
+
+function cancelPayment(){
+
+document.getElementById("qrCard").classList.add("hidden");
+
+}
+
+
+/* ======================
+REPORT
+====================== */
+
+function renderReport(){
+
+if(role!=="admin") return;
+
+let sum=sales.reduce((a,b)=>a+b,0);
+
+document.getElementById("reportText").innerText=
+"ยอดขายรวม: "+sum+" บาท";
+
+}
+
+function exportExcel(){
+
+let text="data:text/csv;charset=utf-8,";
+
+sales.forEach(s=>{
+
+text+=s+"\\n";
+
+});
+
+let link=document.createElement("a");
+
+link.href=encodeURI(text);
+
+link.download="sales.csv";
+
+link.click();
 
 }
 
