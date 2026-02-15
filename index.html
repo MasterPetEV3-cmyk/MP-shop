@@ -82,6 +82,7 @@ text-align:center;
 
 .qrBox img{
 width:250px;
+margin-top:10px;
 }
 
 .payTotal{
@@ -157,7 +158,8 @@ font-weight:bold;
 
 <h3>📱 สแกนเพื่อชำระเงิน</h3>
 
-<img src="promptpay.jpg">
+<!-- FIX PATH -->
+<img src="./promptpay.jpg" id="qrImage">
 
 <div class="payTotal" id="qrTotal"></div>
 
@@ -201,6 +203,7 @@ font-weight:bold;
 
 <script>
 
+// DATABASE
 let products =
 JSON.parse(localStorage.getItem("products")) ||
 [
@@ -208,8 +211,9 @@ JSON.parse(localStorage.getItem("products")) ||
 {name:"น้ำ",price:10}
 ];
 
-let cart=[];
-let sales=
+let cartData=[];
+
+let sales =
 JSON.parse(localStorage.getItem("sales"))||[];
 
 let role="";
@@ -218,8 +222,8 @@ let role="";
 // LOGIN
 function login(){
 
-let u=user.value;
-let p=pass.value;
+let u=document.getElementById("user").value;
+let p=document.getElementById("pass").value;
 
 if(u=="admin" && p=="1234"){
 role="admin";
@@ -232,16 +236,17 @@ alert("Login ผิด");
 return;
 }
 
-loginPage.classList.add("hidden");
-posPage.classList.remove("hidden");
+document.getElementById("loginPage").classList.add("hidden");
+document.getElementById("posPage").classList.remove("hidden");
 
-roleText.innerText=role;
+document.getElementById("roleText").innerText=role;
 
 if(role=="admin"){
-adminPanel.classList.remove("hidden");
+document.getElementById("adminPanel").classList.remove("hidden");
 }
 
 renderProducts();
+renderCart();
 renderReport();
 
 }
@@ -255,6 +260,8 @@ location.reload();
 
 // PRODUCTS
 function renderProducts(){
+
+let productList=document.getElementById("productList");
 
 productList.innerHTML="";
 
@@ -278,8 +285,9 @@ productList.appendChild(div);
 // SEARCH
 function search(text){
 
-let filtered=
-products.filter(p=>p.name.includes(text));
+let filtered=products.filter(p=>p.name.includes(text));
+
+let productList=document.getElementById("productList");
 
 productList.innerHTML="";
 
@@ -289,7 +297,7 @@ let div=document.createElement("div");
 
 div.className="product";
 
-div.innerText=p.name+" - "+p.price;
+div.innerText=p.name+" - "+p.price+" บาท";
 
 div.onclick=()=>addCart(p);
 
@@ -300,33 +308,34 @@ productList.appendChild(div);
 }
 
 
-// CART
+// ADD CART
 function addCart(p){
 
-cart.push(p);
+cartData.push(p);
 
 renderCart();
 
 }
 
 
+// RENDER CART
 function renderCart(){
+
+let cart=document.getElementById("cart");
 
 cart.innerHTML="";
 
 let total=0;
 
-document.getElementById("cart").innerHTML="";
-
-cart.forEach(p=>{
+cartData.forEach(p=>{
 
 total+=p.price;
 
 let div=document.createElement("div");
 
-div.innerText=p.name+" "+p.price;
+div.innerText=p.name+" "+p.price+" บาท";
 
-document.getElementById("cart").appendChild(div);
+cart.appendChild(div);
 
 });
 
@@ -340,17 +349,18 @@ document.getElementById("total").innerText=
 function showQR(){
 
 let total=
-cart.reduce((a,b)=>a+b.price,0);
+cartData.reduce((a,b)=>a+b.price,0);
 
 if(total==0){
 alert("ไม่มีสินค้า");
 return;
 }
 
-qrCard.classList.remove("hidden");
+document.getElementById("qrCard")
+.classList.remove("hidden");
 
-qrTotal.innerText=
-"ยอดชำระ: "+total+" บาท";
+document.getElementById("qrTotal")
+.innerText="ยอดชำระ: "+total+" บาท";
 
 }
 
@@ -359,7 +369,7 @@ qrTotal.innerText=
 function confirmPayment(){
 
 let total=
-cart.reduce((a,b)=>a+b.price,0);
+cartData.reduce((a,b)=>a+b.price,0);
 
 sales.push(total);
 
@@ -368,11 +378,12 @@ localStorage.setItem(
 JSON.stringify(sales)
 );
 
-cart=[];
+cartData=[];
 
 renderCart();
 
-qrCard.classList.add("hidden");
+document.getElementById("qrCard")
+.classList.add("hidden");
 
 alert("ชำระเงินสำเร็จ");
 
@@ -384,7 +395,8 @@ renderReport();
 // CANCEL
 function cancelPayment(){
 
-qrCard.classList.add("hidden");
+document.getElementById("qrCard")
+.classList.add("hidden");
 
 }
 
@@ -392,9 +404,10 @@ qrCard.classList.add("hidden");
 // ADMIN
 function addProduct(){
 
-let name=pname.value;
-
-let price=parseFloat(pprice.value);
+let name=document.getElementById("pname").value;
+let price=parseFloat(
+document.getElementById("pprice").value
+);
 
 products.push({name,price});
 
@@ -414,8 +427,8 @@ function renderReport(){
 let total=
 sales.reduce((a,b)=>a+b,0);
 
-report.innerText=
-"ยอดขายรวม: "+total+" บาท";
+document.getElementById("report")
+.innerText="ยอดขายรวม: "+total+" บาท";
 
 }
 
