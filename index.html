@@ -18,6 +18,7 @@ color:white;
 padding:15px;
 display:flex;
 justify-content:space-between;
+align-items:center;
 }
 
 .container{
@@ -40,6 +41,7 @@ padding:10px;
 width:100%;
 margin-top:5px;
 cursor:pointer;
+border-radius:5px;
 }
 
 button:hover{
@@ -50,6 +52,8 @@ input{
 width:100%;
 padding:8px;
 margin-top:5px;
+border-radius:5px;
+border:1px solid #ccc;
 }
 
 .hidden{
@@ -70,6 +74,7 @@ padding:10px;
 background:#ecf0f1;
 margin:5px;
 cursor:pointer;
+border-radius:5px;
 }
 
 .product:hover{
@@ -92,12 +97,17 @@ color:#e74c3c;
 font-weight:bold;
 }
 
+.role{
+margin-right:10px;
+font-weight:bold;
+}
+
 </style>
 
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN PAGE -->
 <div id="loginPage">
 
 <div class="login-box">
@@ -105,6 +115,7 @@ font-weight:bold;
 <h2>🔐 Login POS</h2>
 
 <input id="user" placeholder="Username">
+
 <input id="pass" type="password" placeholder="Password">
 
 <button onclick="login()">Login</button>
@@ -112,6 +123,7 @@ font-weight:bold;
 </div>
 
 </div>
+
 
 <!-- POS PAGE -->
 <div id="posPage" class="hidden">
@@ -121,14 +133,16 @@ font-weight:bold;
 <div>🛒 MP SHOP POS PRO MAX</div>
 
 <div>
-<span id="roleText"></span>
+<span id="roleText" class="role"></span>
 <button onclick="logout()">Logout</button>
 </div>
 
 </div>
 
+
 <div class="container">
 
+<!-- SEARCH -->
 <div class="card">
 
 <h3>ค้นหา</h3>
@@ -139,6 +153,8 @@ font-weight:bold;
 
 </div>
 
+
+<!-- CART -->
 <div class="card">
 
 <h3>ตะกร้า</h3>
@@ -151,17 +167,17 @@ font-weight:bold;
 
 </div>
 
-<!-- QR PAYMENT -->
+
+<!-- QR -->
 <div id="qrCard" class="card hidden">
 
 <div class="qrBox">
 
 <h3>📱 สแกนเพื่อชำระเงิน</h3>
 
-<!-- FIX PATH -->
-<img src="./promptpay.jpg" id="qrImage">
+<img src="./promptpay.jpg">
 
-<div class="payTotal" id="qrTotal"></div>
+<div id="qrTotal" class="payTotal"></div>
 
 <button onclick="confirmPayment()">✔ ชำระเงินเสร็จแล้ว</button>
 
@@ -171,7 +187,8 @@ font-weight:bold;
 
 </div>
 
-<!-- ADMIN -->
+
+<!-- ADMIN PANEL -->
 <div id="adminPanel" class="hidden">
 
 <div class="card">
@@ -179,11 +196,13 @@ font-weight:bold;
 <h3>เพิ่มสินค้า (Admin)</h3>
 
 <input id="pname" placeholder="ชื่อสินค้า">
+
 <input id="pprice" type="number" placeholder="ราคา">
 
 <button onclick="addProduct()">เพิ่มสินค้า</button>
 
 </div>
+
 
 <div class="card">
 
@@ -201,10 +220,26 @@ font-weight:bold;
 
 </div>
 
+
+
 <script>
 
-// DATABASE
-let products =
+/* =========================
+   LOGIN SECURITY
+========================= */
+
+const ADMIN_USER="admin";
+const ADMIN_PASS="****";
+
+const CASHIER_USER="cashier";
+const CASHIER_PASS="****";
+
+
+/* =========================
+   DATABASE
+========================= */
+
+let products=
 JSON.parse(localStorage.getItem("products")) ||
 [
 {name:"โค้ก",price:15},
@@ -213,57 +248,87 @@ JSON.parse(localStorage.getItem("products")) ||
 
 let cartData=[];
 
-let sales =
+let sales=
 JSON.parse(localStorage.getItem("sales"))||[];
 
 let role="";
 
 
-// LOGIN
+/* =========================
+   LOGIN
+========================= */
+
 function login(){
 
 let u=document.getElementById("user").value;
+
 let p=document.getElementById("pass").value;
 
-if(u=="admin" && p=="1234"){
+
+if(u===ADMIN_USER && p===ADMIN_PASS){
+
 role="admin";
+
 }
-else if(u=="cashier" && p=="0000"){
+
+else if(u===CASHIER_USER && p===CASHIER_PASS){
+
 role="cashier";
+
 }
+
 else{
-alert("Login ผิด");
+
+alert("❌ Username หรือ Password ผิด");
+
 return;
+
 }
+
 
 document.getElementById("loginPage").classList.add("hidden");
+
 document.getElementById("posPage").classList.remove("hidden");
 
-document.getElementById("roleText").innerText=role;
+document.getElementById("roleText").innerText="👤 "+role;
 
-if(role=="admin"){
+
+if(role==="admin"){
+
 document.getElementById("adminPanel").classList.remove("hidden");
+
 }
 
+
 renderProducts();
+
 renderCart();
+
 renderReport();
 
 }
 
 
-// LOGOUT
+/* =========================
+   LOGOUT
+========================= */
+
 function logout(){
+
 location.reload();
+
 }
 
 
-// PRODUCTS
+/* =========================
+   PRODUCTS
+========================= */
+
 function renderProducts(){
 
-let productList=document.getElementById("productList");
+let list=document.getElementById("productList");
 
-productList.innerHTML="";
+list.innerHTML="";
 
 products.forEach(p=>{
 
@@ -275,23 +340,22 @@ div.innerText=p.name+" - "+p.price+" บาท";
 
 div.onclick=()=>addCart(p);
 
-productList.appendChild(div);
+list.appendChild(div);
 
 });
 
 }
 
 
-// SEARCH
 function search(text){
 
-let filtered=products.filter(p=>p.name.includes(text));
+let list=document.getElementById("productList");
 
-let productList=document.getElementById("productList");
+list.innerHTML="";
 
-productList.innerHTML="";
-
-filtered.forEach(p=>{
+products
+.filter(p=>p.name.includes(text))
+.forEach(p=>{
 
 let div=document.createElement("div");
 
@@ -301,14 +365,17 @@ div.innerText=p.name+" - "+p.price+" บาท";
 
 div.onclick=()=>addCart(p);
 
-productList.appendChild(div);
+list.appendChild(div);
 
 });
 
 }
 
 
-// ADD CART
+/* =========================
+   CART
+========================= */
+
 function addCart(p){
 
 cartData.push(p);
@@ -318,7 +385,6 @@ renderCart();
 }
 
 
-// RENDER CART
 function renderCart(){
 
 let cart=document.getElementById("cart");
@@ -345,102 +411,110 @@ document.getElementById("total").innerText=
 }
 
 
-// SHOW QR
+/* =========================
+   PAYMENT
+========================= */
+
 function showQR(){
 
-let total=
-cartData.reduce((a,b)=>a+b.price,0);
+let total=cartData.reduce((a,b)=>a+b.price,0);
 
-if(total==0){
+if(total===0){
+
 alert("ไม่มีสินค้า");
+
 return;
-}
-
-document.getElementById("qrCard")
-.classList.remove("hidden");
-
-document.getElementById("qrTotal")
-.innerText="ยอดชำระ: "+total+" บาท";
 
 }
 
+document.getElementById("qrCard").classList.remove("hidden");
 
-// CONFIRM PAYMENT
+document.getElementById("qrTotal").innerText=
+"ยอดชำระ: "+total+" บาท";
+
+}
+
+
 function confirmPayment(){
 
-let total=
-cartData.reduce((a,b)=>a+b.price,0);
+let total=cartData.reduce((a,b)=>a+b.price,0);
 
 sales.push(total);
 
-localStorage.setItem(
-"sales",
-JSON.stringify(sales)
-);
+localStorage.setItem("sales",JSON.stringify(sales));
 
 cartData=[];
 
 renderCart();
 
-document.getElementById("qrCard")
-.classList.add("hidden");
+document.getElementById("qrCard").classList.add("hidden");
 
-alert("ชำระเงินสำเร็จ");
+alert("✅ ชำระเงินสำเร็จ");
 
 renderReport();
 
 }
 
 
-// CANCEL
 function cancelPayment(){
 
-document.getElementById("qrCard")
-.classList.add("hidden");
+document.getElementById("qrCard").classList.add("hidden");
 
 }
 
 
-// ADMIN
+/* =========================
+   ADMIN
+========================= */
+
 function addProduct(){
 
 let name=document.getElementById("pname").value;
-let price=parseFloat(
-document.getElementById("pprice").value
-);
+
+let price=parseFloat(document.getElementById("pprice").value);
+
+if(!name || !price){
+
+alert("กรอกข้อมูลให้ครบ");
+
+return;
+
+}
 
 products.push({name,price});
 
-localStorage.setItem(
-"products",
-JSON.stringify(products)
-);
+localStorage.setItem("products",JSON.stringify(products));
 
 renderProducts();
 
+alert("เพิ่มสินค้าแล้ว");
+
 }
 
 
-// REPORT
+/* =========================
+   REPORT
+========================= */
+
 function renderReport(){
 
-let total=
-sales.reduce((a,b)=>a+b,0);
+let total=sales.reduce((a,b)=>a+b,0);
 
-document.getElementById("report")
-.innerText="ยอดขายรวม: "+total+" บาท";
+document.getElementById("report").innerText=
+"ยอดขายรวม: "+total+" บาท";
 
 }
 
 
-// EXPORT
+/* =========================
+   EXPORT
+========================= */
+
 function exportExcel(){
 
 let csv="ยอดขาย\n";
 
-sales.forEach(s=>{
-csv+=s+"\n";
-});
+sales.forEach(s=>csv+=s+"\n");
 
 let blob=new Blob([csv]);
 
