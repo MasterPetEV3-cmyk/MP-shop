@@ -122,9 +122,6 @@ td {
 <option value="other">อื่นๆ</option>
 </select>
 
-<input type="text" id="newCategory" placeholder="เพิ่มหมวดใหม่">
-<button onclick="addCategory()">เพิ่มหมวด</button>
-
 <br>
 
 <input type="number" id="price" placeholder="ราคา">
@@ -172,40 +169,15 @@ let dailySales = localStorage.getItem("dailySales")
 
 document.getElementById("daily").innerText = dailySales.toFixed(2);
 
-function addCategory(){
-
-    let newCat = document.getElementById("newCategory").value;
-
-    if(newCat===""){
-        alert("กรอกชื่อหมวด");
-        return;
-    }
-
-    let select = document.getElementById("category");
-
-    let option = document.createElement("option");
-
-    option.value = newCat;
-    option.text = newCat;
-
-    select.add(option);
-
-    document.getElementById("newCategory").value="";
-
-}
-
 function addItem() {
 
     let name = document.getElementById("name").value;
-
     let category = document.getElementById("category").value;
-
     let categoryText = document.getElementById("category").options[
         document.getElementById("category").selectedIndex
     ].text;
 
     let price = parseFloat(document.getElementById("price").value);
-
     let qty = parseInt(document.getElementById("qty").value);
 
     if(name === "" || isNaN(price) || isNaN(qty) || price <= 0 || qty <= 0){
@@ -214,11 +186,9 @@ function addItem() {
     }
 
     let sum = price * qty;
-
     total += sum;
 
     let table = document.getElementById("table");
-
     let row = table.insertRow();
 
     row.insertCell(0).innerText = name;
@@ -229,7 +199,6 @@ function addItem() {
     row.insertCell(2).innerText = price.toFixed(2);
 
     let qtyCell = row.insertCell(3);
-
     qtyCell.innerHTML =
     `<button class="small-btn" onclick="changeQty(this,-1)">-</button>
      ${qty}
@@ -245,62 +214,43 @@ function addItem() {
     document.getElementById("name").value="";
     document.getElementById("price").value="";
     document.getElementById("qty").value="";
-
 }
 
 function changeQty(button, change){
-
     let row = button.parentElement.parentElement;
-
     let price = parseFloat(row.cells[2].innerText);
-
     let currentQty =
     parseInt(button.parentElement.childNodes[2].nodeValue.trim());
-
     let newQty = currentQty + change;
 
     if(newQty<=0)return;
 
     button.parentElement.childNodes[2].nodeValue=" "+newQty+" ";
-
     row.cells[4].innerText = (price*newQty).toFixed(2);
 
     recalculateTotal();
-
 }
 
 function removeRow(button){
-
     button.parentElement.parentElement.remove();
-
     recalculateTotal();
-
 }
 
 function recalculateTotal(){
-
     total=0;
-
     let table=document.getElementById("table");
 
     for(let i=1;i<table.rows.length;i++){
-
         total+=parseFloat(table.rows[i].cells[4].innerText);
-
     }
-
     updateTotal();
-
 }
 
 function updateTotal(){
-
     document.getElementById("total").innerText=total.toFixed(2);
-
 }
 
 function calculateChange(){
-
     let money=parseFloat(document.getElementById("money").value);
 
     if(isNaN(money)){
@@ -309,34 +259,23 @@ function calculateChange(){
     }
 
     if(money<total){
-
         document.getElementById("change").innerText="เงินไม่พอ!";
-
     }else{
-
         let change=money-total;
-
         document.getElementById("change").innerText=
         "เงินทอน: "+change.toFixed(2)+" บาท";
 
         dailySales+=total;
-
         localStorage.setItem("dailySales",dailySales);
-
         document.getElementById("daily").innerText=dailySales.toFixed(2);
-
     }
-
 }
 
 function printReceipt(){
-
     window.print();
-
 }
 
 function clearAll(){
-
     document.getElementById("table").innerHTML=
     `<tr>
     <th>สินค้า</th>
@@ -346,13 +285,9 @@ function clearAll(){
     <th>รวม</th>
     <th>จัดการ</th>
     </tr>`;
-
     total=0;
-
     updateTotal();
-
     document.getElementById("change").innerText="";
-
 }
 
 </script>
