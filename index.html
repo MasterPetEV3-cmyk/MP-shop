@@ -7,99 +7,141 @@
 <style>
 
 body{
-font-family:Arial;
-background:#f0f2f5;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#eef2f7,#dbe6f6);
 margin:0;
 }
 
+/* HEADER */
+
 .header{
-background:#2c3e50;
+background:linear-gradient(90deg,#1f2a44,#2c3e50);
 color:white;
-padding:15px;
+padding:15px 25px;
 display:flex;
 justify-content:space-between;
 align-items:center;
+box-shadow:0 4px 12px rgba(0,0,0,0.2);
 }
 
+.role{
+background:#34495e;
+padding:5px 12px;
+border-radius:20px;
+margin-right:10px;
+}
+
+/* LAYOUT */
+
 .container{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
 padding:20px;
 }
+
+/* CARD */
 
 .card{
 background:white;
 padding:15px;
-margin-bottom:15px;
-border-radius:8px;
-box-shadow:0 0 5px rgba(0,0,0,0.2);
+border-radius:12px;
+box-shadow:0 8px 20px rgba(0,0,0,0.1);
 }
 
+/* BUTTON */
+
 button{
-background:#3498db;
-color:white;
 border:none;
 padding:10px;
-width:100%;
-margin-top:5px;
+border-radius:8px;
 cursor:pointer;
-border-radius:5px;
+font-weight:bold;
+transition:0.2s;
 }
 
 button:hover{
-background:#2980b9;
+transform:scale(1.05);
+}
+
+/* COLORS */
+
+.btn-blue{
+background:#3498db;
+color:white;
+width:100%;
+}
+
+.btn-red{
+background:#e74c3c;
+color:white;
+margin-left:10px;
+}
+
+.btn-green{
+background:#2ecc71;
+color:white;
+width:100%;
+}
+
+/* PRODUCT */
+
+.product{
+background:#f1f3f6;
+padding:12px;
+margin-top:8px;
+border-radius:8px;
+cursor:pointer;
+transition:0.2s;
+}
+
+.product:hover{
+background:#dfe6ee;
+transform:scale(1.02);
+}
+
+/* CART ITEM */
+
+.cart-item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#f8f9fb;
+padding:8px;
+margin-top:5px;
+border-radius:6px;
+}
+
+/* LOGIN */
+
+.login-box{
+width:320px;
+margin:120px auto;
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
 input{
 width:100%;
-padding:8px;
-margin-top:5px;
-border-radius:5px;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
 border:1px solid #ccc;
+}
+
+/* TOTAL */
+
+.total{
+font-size:20px;
+font-weight:bold;
+margin-top:10px;
+color:#e74c3c;
 }
 
 .hidden{
 display:none;
-}
-
-.login-box{
-width:300px;
-margin:100px auto;
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.3);
-}
-
-.product{
-padding:10px;
-background:#ecf0f1;
-margin:5px;
-cursor:pointer;
-border-radius:5px;
-}
-
-.product:hover{
-background:#d0d7de;
-}
-
-.qrBox{
-text-align:center;
-}
-
-.qrBox img{
-width:250px;
-margin-top:10px;
-}
-
-.payTotal{
-font-size:20px;
-margin:10px;
-color:#e74c3c;
-font-weight:bold;
-}
-
-.role{
-margin-right:10px;
-font-weight:bold;
 }
 
 </style>
@@ -107,7 +149,9 @@ font-weight:bold;
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
+
+<!-- LOGIN -->
+
 <div id="loginPage">
 
 <div class="login-box">
@@ -115,17 +159,17 @@ font-weight:bold;
 <h2>🔐 Login POS</h2>
 
 <input id="user" placeholder="Username">
-
 <input id="pass" type="password" placeholder="Password">
 
-<button onclick="login()">Login</button>
+<button class="btn-blue" onclick="login()">Login</button>
 
 </div>
 
 </div>
 
 
-<!-- POS PAGE -->
+<!-- POS -->
+
 <div id="posPage" class="hidden">
 
 <div class="header">
@@ -133,8 +177,11 @@ font-weight:bold;
 <div>🛒 MP SHOP POS PRO MAX</div>
 
 <div>
+
 <span id="roleText" class="role"></span>
-<button onclick="logout()">Logout</button>
+
+<button class="btn-red" onclick="logout()">Logout</button>
+
 </div>
 
 </div>
@@ -142,10 +189,12 @@ font-weight:bold;
 
 <div class="container">
 
-<!-- SEARCH -->
+
+<!-- PRODUCT -->
+
 <div class="card">
 
-<h3>ค้นหา</h3>
+<h3>สินค้า</h3>
 
 <input oninput="search(this.value)" placeholder="ค้นหา...">
 
@@ -155,78 +204,30 @@ font-weight:bold;
 
 
 <!-- CART -->
+
 <div class="card">
 
 <h3>ตะกร้า</h3>
 
 <div id="cart"></div>
 
-<div id="total">รวม: 0 บาท</div>
+<div class="total" id="total">รวม: 0 บาท</div>
 
-<button onclick="showQR()">ชำระเงิน</button>
+<button class="btn-green" onclick="showQR()">ชำระเงิน</button>
 
-</div>
-
-
-<!-- QR -->
-<div id="qrCard" class="card hidden">
-
-<div class="qrBox">
-
-<h3>📱 สแกนเพื่อชำระเงิน</h3>
-
-<img src="./promptpay.jpg">
-
-<div id="qrTotal" class="payTotal"></div>
-
-<button onclick="confirmPayment()">✔ ชำระเงินเสร็จแล้ว</button>
-
-<button onclick="cancelPayment()">ยกเลิก</button>
-
-</div>
+<button class="btn-red" onclick="clearCart()">ลบทั้งหมด</button>
 
 </div>
 
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel" class="hidden">
-
-<div class="card">
-
-<h3>เพิ่มสินค้า (Admin)</h3>
-
-<input id="pname" placeholder="ชื่อสินค้า">
-
-<input id="pprice" type="number" placeholder="ราคา">
-
-<button onclick="addProduct()">เพิ่มสินค้า</button>
-
-</div>
-
-
-<div class="card">
-
-<h3>รายงาน</h3>
-
-<div id="report"></div>
-
-<button onclick="exportExcel()">Export Excel</button>
-
 </div>
 
 </div>
-
-</div>
-
-</div>
-
 
 
 <script>
 
-/* =========================
-   LOGIN SECURITY
-========================= */
+/* LOGIN */
 
 const ADMIN_USER="admin";
 const ADMIN_PASS="****";
@@ -234,10 +235,9 @@ const ADMIN_PASS="****";
 const CASHIER_USER="cashier";
 const CASHIER_PASS="****";
 
+let role="";
 
-/* =========================
-   DATABASE
-========================= */
+/* DATA */
 
 let products=
 JSON.parse(localStorage.getItem("products")) ||
@@ -248,22 +248,13 @@ JSON.parse(localStorage.getItem("products")) ||
 
 let cartData=[];
 
-let sales=
-JSON.parse(localStorage.getItem("sales"))||[];
 
-let role="";
-
-
-/* =========================
-   LOGIN
-========================= */
+/* LOGIN */
 
 function login(){
 
-let u=document.getElementById("user").value;
-
-let p=document.getElementById("pass").value;
-
+let u=user.value;
+let p=pass.value;
 
 if(u===ADMIN_USER && p===ADMIN_PASS){
 
@@ -279,39 +270,25 @@ role="cashier";
 
 else{
 
-alert("❌ Username หรือ Password ผิด");
+alert("Login ผิด");
 
 return;
 
 }
 
+loginPage.classList.add("hidden");
 
-document.getElementById("loginPage").classList.add("hidden");
+posPage.classList.remove("hidden");
 
-document.getElementById("posPage").classList.remove("hidden");
-
-document.getElementById("roleText").innerText="👤 "+role;
-
-
-if(role==="admin"){
-
-document.getElementById("adminPanel").classList.remove("hidden");
-
-}
-
+roleText.innerText="👤 "+role;
 
 renderProducts();
-
 renderCart();
-
-renderReport();
 
 }
 
 
-/* =========================
-   LOGOUT
-========================= */
+/* LOGOUT */
 
 function logout(){
 
@@ -320,15 +297,11 @@ location.reload();
 }
 
 
-/* =========================
-   PRODUCTS
-========================= */
+/* PRODUCT */
 
 function renderProducts(){
 
-let list=document.getElementById("productList");
-
-list.innerHTML="";
+productList.innerHTML="";
 
 products.forEach(p=>{
 
@@ -336,11 +309,11 @@ let div=document.createElement("div");
 
 div.className="product";
 
-div.innerText=p.name+" - "+p.price+" บาท";
+div.innerText=`${p.name} - ${p.price} บาท`;
 
 div.onclick=()=>addCart(p);
 
-list.appendChild(div);
+productList.appendChild(div);
 
 });
 
@@ -349,9 +322,7 @@ list.appendChild(div);
 
 function search(text){
 
-let list=document.getElementById("productList");
-
-list.innerHTML="";
+productList.innerHTML="";
 
 products
 .filter(p=>p.name.includes(text))
@@ -361,20 +332,18 @@ let div=document.createElement("div");
 
 div.className="product";
 
-div.innerText=p.name+" - "+p.price+" บาท";
+div.innerText=`${p.name} - ${p.price} บาท`;
 
 div.onclick=()=>addCart(p);
 
-list.appendChild(div);
+productList.appendChild(div);
 
 });
 
 }
 
 
-/* =========================
-   CART
-========================= */
+/* CART */
 
 function addCart(p){
 
@@ -387,23 +356,28 @@ renderCart();
 
 function renderCart(){
 
-let cart=document.getElementById("cart");
-
 cart.innerHTML="";
 
 let total=0;
 
-cartData.forEach(p=>{
+cartData.forEach((p,index)=>{
 
 total+=p.price;
 
 let div=document.createElement("div");
 
-div.innerText=p.name+" "+p.price+" บาท";
+div.className="cart-item";
+
+div.innerHTML=`
+<span>${p.name} - ${p.price} บาท</span>
+<button class="btn-red" onclick="removeItem(${index})">ลบ</button>
+`;
 
 cart.appendChild(div);
 
 });
+
+total.innerText;
 
 document.getElementById("total").innerText=
 "รวม: "+total+" บาท";
@@ -411,15 +385,33 @@ document.getElementById("total").innerText=
 }
 
 
-/* =========================
-   PAYMENT
-========================= */
+/* REMOVE */
+
+function removeItem(index){
+
+cartData.splice(index,1);
+
+renderCart();
+
+}
+
+
+/* CLEAR */
+
+function clearCart(){
+
+cartData=[];
+
+renderCart();
+
+}
+
+
+/* PAYMENT */
 
 function showQR(){
 
-let total=cartData.reduce((a,b)=>a+b.price,0);
-
-if(total===0){
+if(cartData.length===0){
 
 alert("ไม่มีสินค้า");
 
@@ -427,104 +419,11 @@ return;
 
 }
 
-document.getElementById("qrCard").classList.remove("hidden");
-
-document.getElementById("qrTotal").innerText=
-"ยอดชำระ: "+total+" บาท";
-
-}
-
-
-function confirmPayment(){
-
-let total=cartData.reduce((a,b)=>a+b.price,0);
-
-sales.push(total);
-
-localStorage.setItem("sales",JSON.stringify(sales));
+alert("ระบบชำระเงิน (เพิ่ม QR ได้)");
 
 cartData=[];
 
 renderCart();
-
-document.getElementById("qrCard").classList.add("hidden");
-
-alert("✅ ชำระเงินสำเร็จ");
-
-renderReport();
-
-}
-
-
-function cancelPayment(){
-
-document.getElementById("qrCard").classList.add("hidden");
-
-}
-
-
-/* =========================
-   ADMIN
-========================= */
-
-function addProduct(){
-
-let name=document.getElementById("pname").value;
-
-let price=parseFloat(document.getElementById("pprice").value);
-
-if(!name || !price){
-
-alert("กรอกข้อมูลให้ครบ");
-
-return;
-
-}
-
-products.push({name,price});
-
-localStorage.setItem("products",JSON.stringify(products));
-
-renderProducts();
-
-alert("เพิ่มสินค้าแล้ว");
-
-}
-
-
-/* =========================
-   REPORT
-========================= */
-
-function renderReport(){
-
-let total=sales.reduce((a,b)=>a+b,0);
-
-document.getElementById("report").innerText=
-"ยอดขายรวม: "+total+" บาท";
-
-}
-
-
-/* =========================
-   EXPORT
-========================= */
-
-function exportExcel(){
-
-let csv="ยอดขาย\n";
-
-sales.forEach(s=>csv+=s+"\n");
-
-let blob=new Blob([csv]);
-
-let a=document.createElement("a");
-
-a.href=URL.createObjectURL(blob);
-
-a.download="report.csv";
-
-a.click();
 
 }
 
