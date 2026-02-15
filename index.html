@@ -3,294 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MP shop</title>
+<title>MP SHOP PRO</title>
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #6a0dad, #ffffff);
-    margin: 0;
-    padding: 20px;
-}
-
-.container {
-    background: white;
-    max-width: 1000px;
-    margin: auto;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-}
-
-h1 {
-    text-align: center;
-    color: #6a0dad;
-}
-
-input, select {
-    padding: 10px;
-    margin: 5px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
-
-button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 8px;
-    background: #6a0dad;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-button:hover {
-    background: #4b0082;
-}
-
-table {
-    width: 100%;
-    margin-top: 15px;
-    border-collapse: collapse;
-}
-
-th {
-    background: #6a0dad;
-    color: white;
-    padding: 10px;
-}
-
-td {
-    padding: 8px;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
-}
-
-.total {
-    font-size: 20px;
-    font-weight: bold;
-    color: #6a0dad;
-    margin-top: 10px;
-}
-
-.result {
-    margin-top: 10px;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.clear-btn {
-    background: red;
-}
-
-.clear-btn:hover {
-    background: darkred;
-}
-
-.small-btn {
-    padding: 4px 8px;
-    font-size: 14px;
-}
-
-.category-tag {
-    padding: 4px 8px;
-    border-radius: 6px;
-    color: white;
-    font-size: 13px;
-}
-
-.food { background: #ff9800; }
-.drink { background: #2196f3; }
-.snack { background: #4caf50; }
-.other { background: #9c27b0; }
-
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<div class="container">
+<div class="app">
 
-<h1>🧾 โปรแกรมแคชเชียร์ (MP shop)</h1>
+<div class="sidebar">
 
-<input type="text" id="name" placeholder="ชื่อสินค้า">
+<h2>MP SHOP PRO</h2>
 
-<select id="category">
-<option value="food">อาหาร</option>
-<option value="drink">เครื่องดื่ม</option>
-<option value="snack">ขนม</option>
-<option value="other">อื่นๆ</option>
-</select>
+<button onclick="showPage('sales')">🛒 ขายสินค้า</button>
+<button onclick="showPage('products')">📦 จัดการสินค้า</button>
+<button onclick="showPage('report')">📊 รายงาน</button>
 
-<br>
+</div>
 
-<input type="number" id="price" placeholder="ราคา">
-<input type="number" id="qty" placeholder="จำนวน">
+<div class="main">
 
-<button onclick="addItem()">เพิ่มสินค้า</button>
+<!-- SALES PAGE -->
+<div id="salesPage">
 
-<table id="table">
+<h1>หน้าขายสินค้า</h1>
+
+<input type="text" id="search" placeholder="ค้นหาสินค้า..." onkeyup="renderProducts()">
+
+<div id="productList" class="grid"></div>
+
+<h2>ตะกร้าสินค้า</h2>
+
+<table>
+
+<thead>
 <tr>
 <th>สินค้า</th>
-<th>หมวดหมู่</th>
 <th>ราคา</th>
 <th>จำนวน</th>
 <th>รวม</th>
-<th>จัดการ</th>
+<th></th>
 </tr>
+</thead>
+
+<tbody id="cart"></tbody>
+
 </table>
 
-<div class="total">
-รวมทั้งหมด: <span id="total">0.00</span> บาท
-</div>
-
-<hr>
+<h3>รวม: <span id="total">0</span> บาท</h3>
 
 <input type="number" id="money" placeholder="รับเงิน">
 
-<button onclick="calculateChange()">คำนวณเงินทอน</button>
+<button onclick="pay()">ชำระเงิน</button>
 <button onclick="printReceipt()">พิมพ์ใบเสร็จ</button>
-<button class="clear-btn" onclick="clearAll()">ล้างทั้งหมด</button>
 
-<div class="result" id="change"></div>
-
-<div class="result">
-ยอดขายวันนี้: <span id="daily">0.00</span> บาท
-</div>
+<div id="change"></div>
 
 </div>
 
-<script>
 
-let total = 0;
+<!-- PRODUCT PAGE -->
+<div id="productsPage" class="hidden">
 
-let dailySales = localStorage.getItem("dailySales") 
-? parseFloat(localStorage.getItem("dailySales")) : 0;
+<h1>จัดการสินค้า</h1>
 
-document.getElementById("daily").innerText = dailySales.toFixed(2);
+<input id="pname" placeholder="ชื่อสินค้า">
+<input id="pprice" type="number" placeholder="ราคา">
 
-function addItem() {
+<button onclick="addProduct()">เพิ่มสินค้า</button>
 
-    let name = document.getElementById("name").value;
-    let category = document.getElementById("category").value;
-    let categoryText = document.getElementById("category").options[
-        document.getElementById("category").selectedIndex
-    ].text;
+<table>
 
-    let price = parseFloat(document.getElementById("price").value);
-    let qty = parseInt(document.getElementById("qty").value);
+<thead>
+<tr>
+<th>สินค้า</th>
+<th>ราคา</th>
+<th></th>
+</tr>
+</thead>
 
-    if(name === "" || isNaN(price) || isNaN(qty) || price <= 0 || qty <= 0){
-        alert("กรอกข้อมูลให้ถูกต้อง");
-        return;
-    }
+<tbody id="productTable"></tbody>
 
-    let sum = price * qty;
-    total += sum;
+</table>
 
-    let table = document.getElementById("table");
-    let row = table.insertRow();
+</div>
 
-    row.insertCell(0).innerText = name;
 
-    row.insertCell(1).innerHTML =
-    `<span class="category-tag ${category}">${categoryText}</span>`;
+<!-- REPORT PAGE -->
+<div id="reportPage" class="hidden">
 
-    row.insertCell(2).innerText = price.toFixed(2);
+<h1>รายงาน</h1>
 
-    let qtyCell = row.insertCell(3);
-    qtyCell.innerHTML =
-    `<button class="small-btn" onclick="changeQty(this,-1)">-</button>
-     ${qty}
-     <button class="small-btn" onclick="changeQty(this,1)">+</button>`;
+<h3>ยอดขายทั้งหมด: <span id="salesTotal">0</span> บาท</h3>
 
-    row.insertCell(4).innerText = sum.toFixed(2);
+</div>
 
-    row.insertCell(5).innerHTML =
-    `<button class="small-btn" onclick="removeRow(this)">ลบ</button>`;
+</div>
+</div>
 
-    updateTotal();
-
-    document.getElementById("name").value="";
-    document.getElementById("price").value="";
-    document.getElementById("qty").value="";
-}
-
-function changeQty(button, change){
-    let row = button.parentElement.parentElement;
-    let price = parseFloat(row.cells[2].innerText);
-    let currentQty =
-    parseInt(button.parentElement.childNodes[2].nodeValue.trim());
-    let newQty = currentQty + change;
-
-    if(newQty<=0)return;
-
-    button.parentElement.childNodes[2].nodeValue=" "+newQty+" ";
-    row.cells[4].innerText = (price*newQty).toFixed(2);
-
-    recalculateTotal();
-}
-
-function removeRow(button){
-    button.parentElement.parentElement.remove();
-    recalculateTotal();
-}
-
-function recalculateTotal(){
-    total=0;
-    let table=document.getElementById("table");
-
-    for(let i=1;i<table.rows.length;i++){
-        total+=parseFloat(table.rows[i].cells[4].innerText);
-    }
-    updateTotal();
-}
-
-function updateTotal(){
-    document.getElementById("total").innerText=total.toFixed(2);
-}
-
-function calculateChange(){
-    let money=parseFloat(document.getElementById("money").value);
-
-    if(isNaN(money)){
-        alert("กรอกเงิน");
-        return;
-    }
-
-    if(money<total){
-        document.getElementById("change").innerText="เงินไม่พอ!";
-    }else{
-        let change=money-total;
-        document.getElementById("change").innerText=
-        "เงินทอน: "+change.toFixed(2)+" บาท";
-
-        dailySales+=total;
-        localStorage.setItem("dailySales",dailySales);
-        document.getElementById("daily").innerText=dailySales.toFixed(2);
-    }
-}
-
-function printReceipt(){
-    window.print();
-}
-
-function clearAll(){
-    document.getElementById("table").innerHTML=
-    `<tr>
-    <th>สินค้า</th>
-    <th>หมวดหมู่</th>
-    <th>ราคา</th>
-    <th>จำนวน</th>
-    <th>รวม</th>
-    <th>จัดการ</th>
-    </tr>`;
-    total=0;
-    updateTotal();
-    document.getElementById("change").innerText="";
-}
-
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
