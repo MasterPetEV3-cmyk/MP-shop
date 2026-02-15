@@ -2,339 +2,175 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>MP SHOP POS PRO</title>
+<title>MP Shop Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
-font-family:sans-serif;
-background:#f4f6f9;
-margin:0;
-padding:20px;
+    font-family: Arial;
+    background:#f4f6f8;
+    margin:0;
 }
+
+header{
+    background:#1e88e5;
+    color:white;
+    padding:15px;
+}
+
 .container{
-max-width:1200px;
-margin:auto;
+    padding:20px;
 }
-.layout{
-display:flex;
-gap:20px;
+
+.card{
+    background:white;
+    padding:15px;
+    margin-bottom:15px;
+    border-radius:10px;
+    box-shadow:0 2px 5px rgba(0,0,0,0.2);
 }
-.left,.right{
-flex:1;
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
-input,select,button{
-width:100%;
-padding:10px;
-margin:5px 0;
-border-radius:5px;
-border:1px solid #ccc;
-}
+
 button{
-background:#1976d2;
-color:white;
-border:none;
-cursor:pointer;
+    padding:10px 15px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
 }
-button:hover{
-background:#125aa0;
+
+.admin{
+    background:#e53935;
+    color:white;
 }
-table{
-width:100%;
-border-collapse:collapse;
+
+.cashier{
+    background:#43a047;
+    color:white;
 }
-th,td{
-border:1px solid #ddd;
-padding:10px;
-text-align:center;
+
+.hidden{
+    display:none;
 }
-.product{
-border:1px solid #ddd;
-padding:10px;
-margin:5px 0;
-border-radius:5px;
-}
-.total{
-font-size:20px;
-font-weight:bold;
-color:green;
-}
-.role-box{
-margin-bottom:15px;
-}
-.admin-section{
-background:#f1f3f5;
-padding:15px;
-border-radius:8px;
-margin-top:15px;
+
+input{
+    padding:8px;
+    margin:5px;
 }
 </style>
-</head>
 
+</head>
 <body>
+
+<header>
+<h2>MP Shop System Demo</h2>
+</header>
 
 <div class="container">
 
-<h1>🛒 MP SHOP POS PRO</h1>
+<!-- LOGIN -->
+<div class="card" id="loginBox">
+<h3>เข้าสู่ระบบ</h3>
 
-<div class="role-box">
-เข้าสู่ระบบเป็น:
-<select id="roleSelect" onchange="changeRole()">
+<select id="role">
 <option value="cashier">Cashier</option>
 <option value="admin">Admin</option>
 </select>
-</div>
 
-<div class="layout">
+<br><br>
 
-<!-- LEFT -->
-<div class="left">
-
-<h2>เพิ่มสินค้า (Admin เท่านั้น)</h2>
-
-<div id="addProductSection">
-
-<input id="pname" placeholder="ชื่อสินค้า">
-<input id="price" type="number" placeholder="ราคา">
-<input id="cost" type="number" placeholder="ต้นทุน (ใช้คำนวณกำไร)">
-<input id="pstock" type="number" placeholder="จำนวนสต๊อก">
-
-<button onclick="addProduct()">เพิ่มสินค้า</button>
+<button onclick="login()">เข้าสู่ระบบ</button>
 
 </div>
 
-<h2>ค้นหา</h2>
-<input id="search" placeholder="ค้นหา..." onkeyup="renderProducts()">
 
-<h2>รายการสินค้า</h2>
-<div id="productList"></div>
+<!-- CASHIER PANEL -->
+<div class="card hidden" id="cashierPanel">
 
-</div>
+<h3>ระบบขายสินค้า (Cashier)</h3>
 
-<!-- RIGHT -->
-<div class="right">
+<input id="product" placeholder="ชื่อสินค้า">
+<input id="price" placeholder="ราคา" type="number">
 
-<h2>ตะกร้า</h2>
+<button class="cashier" onclick="addSale()">ขายสินค้า</button>
 
-<table>
-<thead>
-<tr>
-<th>สินค้า</th>
-<th>ราคา</th>
-<th>ลบ</th>
-</tr>
-</thead>
-<tbody id="cart"></tbody>
-</table>
-
-<br>
-<div class="total">
-รวม: <span id="total">0</span> บาท
-</div>
-
-<br>
-<button onclick="checkout()">ชำระเงิน</button>
-
-<!-- ADMIN ONLY SECTION -->
-<div id="adminOnly" class="admin-section">
-
-<h3>รายงานวันนี้</h3>
-
-ยอดขาย: <span id="sales">0</span> บาท<br>
-กำไร: <span id="profit">0</span> บาท<br>
-จำนวนบิล: <span id="billCount">0</span><br><br>
-
-<button onclick="exportCSV()">Export Excel (CSV)</button>
+<p id="saleOutput"></p>
 
 </div>
 
-</div>
+
+<!-- ADMIN PANEL -->
+<div class="card hidden" id="adminPanel">
+
+<h3>ระบบหลังบ้าน (Admin Only)</h3>
+
+<button class="admin" onclick="viewLogs()">ดู Logs</button>
+
+<p id="adminOutput"></p>
 
 </div>
+
+
 </div>
+
 
 <script>
 
-let products = JSON.parse(localStorage.getItem("products")) || [];
-let cart = [];
-let sales = parseFloat(localStorage.getItem("sales")) || 0;
-let profit = parseFloat(localStorage.getItem("profit")) || 0;
-let billCount = parseInt(localStorage.getItem("billCount")) || 0;
+let currentRole = "cashier"
 
-let role = localStorage.getItem("role") || "cashier";
-document.getElementById("roleSelect").value = role;
+let logs = []
 
-function saveData(){
-localStorage.setItem("products", JSON.stringify(products));
-localStorage.setItem("sales", sales);
-localStorage.setItem("profit", profit);
-localStorage.setItem("billCount", billCount);
-}
+function login(){
 
-function changeRole(){
-role = document.getElementById("roleSelect").value;
-localStorage.setItem("role", role);
-updateUI();
-}
+    currentRole = document.getElementById("role").value
 
-function updateUI(){
+    document.getElementById("loginBox").classList.add("hidden")
 
-if(role === "admin"){
-document.getElementById("adminOnly").style.display="block";
-document.getElementById("addProductSection").style.display="block";
-}else{
-document.getElementById("adminOnly").style.display="none";
-document.getElementById("addProductSection").style.display="none";
-}
+    document.getElementById("cashierPanel").classList.remove("hidden")
+
+    // ADMIN เท่านั้นเห็น adminPanel
+    if(currentRole === "admin"){
+        document.getElementById("adminPanel").classList.remove("hidden")
+    }
 
 }
 
-function addProduct(){
+function addSale(){
 
-if(role !== "admin"){
-alert("เฉพาะ Admin เท่านั้น");
-return;
-}
+    let product = document.getElementById("product").value
+    let price = document.getElementById("price").value
 
-let name=document.getElementById("pname").value;
-let price=parseFloat(document.getElementById("price").value);
-let cost=parseFloat(document.getElementById("cost").value);
-let stock=parseInt(document.getElementById("pstock").value);
+    if(product === "" || price === ""){
+        alert("กรอกข้อมูลก่อน")
+        return
+    }
 
-if(!name || !price || !cost || !stock){
-alert("กรอกข้อมูลให้ครบ");
-return;
-}
+    let text = product + " ราคา " + price + " บาท"
 
-products.push({name,price,cost,stock});
-saveData();
-renderProducts();
+    document.getElementById("saleOutput").innerText =
+        "ขายแล้ว: " + text
 
-document.getElementById("pname").value="";
-document.getElementById("price").value="";
-document.getElementById("cost").value="";
-document.getElementById("pstock").value="";
+    logs.push(text)
 
 }
 
-function renderProducts(){
+function viewLogs(){
 
-let search=document.getElementById("search").value.toLowerCase();
-let list=document.getElementById("productList");
-list.innerHTML="";
+    if(currentRole !== "admin"){
+        alert("ไม่มีสิทธิ์")
+        return
+    }
 
-products.filter(p=>p.name.toLowerCase().includes(search))
-.forEach((p,index)=>{
+    let text = ""
 
-let div=document.createElement("div");
-div.className="product";
+    for(let i=0;i<logs.length;i++){
+        text += logs[i] + "\n"
+    }
 
-div.innerHTML=`
-<b>${p.name}</b><br>
-ราคา: ${p.price} บาท<br>
-สต๊อก: ${p.stock}<br>
-<button onclick="addToCart(${index})">เพิ่มลงตะกร้า</button>
-`;
-
-list.appendChild(div);
-
-});
+    document.getElementById("adminOutput").innerText = text
 
 }
-
-function addToCart(index){
-
-if(products[index].stock<=0){
-alert("สินค้าหมด");
-return;
-}
-
-products[index].stock--;
-cart.push(products[index]);
-saveData();
-renderProducts();
-renderCart();
-
-}
-
-function renderCart(){
-
-let tbody=document.getElementById("cart");
-tbody.innerHTML="";
-let total=0;
-
-cart.forEach((item,i)=>{
-total+=item.price;
-tbody.innerHTML+=`
-<tr>
-<td>${item.name}</td>
-<td>${item.price}</td>
-<td><button onclick="removeCart(${i})">ลบ</button></td>
-</tr>
-`;
-});
-
-document.getElementById("total").innerText=total;
-
-}
-
-function removeCart(i){
-cart.splice(i,1);
-renderCart();
-}
-
-function checkout(){
-
-if(cart.length===0){
-alert("ไม่มีสินค้า");
-return;
-}
-
-let total=cart.reduce((sum,item)=>sum+item.price,0);
-let totalCost=cart.reduce((sum,item)=>sum+item.cost,0);
-
-sales+=total;
-profit+=(total-totalCost);
-billCount++;
-
-cart=[];
-saveData();
-renderCart();
-updateReport();
-
-alert("ชำระเงินสำเร็จ");
-
-}
-
-function updateReport(){
-document.getElementById("sales").innerText=sales;
-document.getElementById("profit").innerText=profit;
-document.getElementById("billCount").innerText=billCount;
-}
-
-function exportCSV(){
-
-let csv="ยอดขาย,กำไร,จำนวนบิล\n";
-csv+=`${sales},${profit},${billCount}`;
-
-let blob=new Blob([csv],{type:"text/csv"});
-let url=URL.createObjectURL(blob);
-let a=document.createElement("a");
-a.href=url;
-a.download="report.csv";
-a.click();
-
-}
-
-renderProducts();
-renderCart();
-updateReport();
-updateUI();
 
 </script>
+
 
 </body>
 </html>
