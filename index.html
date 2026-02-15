@@ -15,7 +15,7 @@ body {
 
 .container {
     background: white;
-    max-width: 900px;
+    max-width: 1000px;
     margin: auto;
     padding: 20px;
     border-radius: 15px;
@@ -27,7 +27,7 @@ h1 {
     color: #6a0dad;
 }
 
-input {
+input, select {
     padding: 10px;
     margin: 5px;
     border-radius: 8px;
@@ -91,6 +91,19 @@ td {
     padding: 4px 8px;
     font-size: 14px;
 }
+
+.category-tag {
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: white;
+    font-size: 13px;
+}
+
+.food { background: #ff9800; }
+.drink { background: #2196f3; }
+.snack { background: #4caf50; }
+.other { background: #9c27b0; }
+
 </style>
 </head>
 
@@ -101,6 +114,19 @@ td {
 <h1>🧾 โปรแกรมแคชเชียร์ (MP shop)</h1>
 
 <input type="text" id="name" placeholder="ชื่อสินค้า">
+
+<select id="category">
+<option value="food">อาหาร</option>
+<option value="drink">เครื่องดื่ม</option>
+<option value="snack">ขนม</option>
+<option value="other">อื่นๆ</option>
+</select>
+
+<input type="text" id="newCategory" placeholder="เพิ่มหมวดใหม่">
+<button onclick="addCategory()">เพิ่มหมวด</button>
+
+<br>
+
 <input type="number" id="price" placeholder="ราคา">
 <input type="number" id="qty" placeholder="จำนวน">
 
@@ -109,6 +135,7 @@ td {
 <table id="table">
 <tr>
 <th>สินค้า</th>
+<th>หมวดหมู่</th>
 <th>ราคา</th>
 <th>จำนวน</th>
 <th>รวม</th>
@@ -139,132 +166,193 @@ td {
 <script>
 
 let total = 0;
+
 let dailySales = localStorage.getItem("dailySales") 
-    ? parseFloat(localStorage.getItem("dailySales")) 
-    : 0;
+? parseFloat(localStorage.getItem("dailySales")) : 0;
 
 document.getElementById("daily").innerText = dailySales.toFixed(2);
+
+function addCategory(){
+
+    let newCat = document.getElementById("newCategory").value;
+
+    if(newCat===""){
+        alert("กรอกชื่อหมวด");
+        return;
+    }
+
+    let select = document.getElementById("category");
+
+    let option = document.createElement("option");
+
+    option.value = newCat;
+    option.text = newCat;
+
+    select.add(option);
+
+    document.getElementById("newCategory").value="";
+
+}
 
 function addItem() {
 
     let name = document.getElementById("name").value;
+
+    let category = document.getElementById("category").value;
+
+    let categoryText = document.getElementById("category").options[
+        document.getElementById("category").selectedIndex
+    ].text;
+
     let price = parseFloat(document.getElementById("price").value);
+
     let qty = parseInt(document.getElementById("qty").value);
 
-    if(name === "" || isNaN(price) || isNaN(qty) || price <= 0 || qty <= 0) {
+    if(name === "" || isNaN(price) || isNaN(qty) || price <= 0 || qty <= 0){
         alert("กรอกข้อมูลให้ถูกต้อง");
         return;
     }
 
     let sum = price * qty;
+
     total += sum;
 
     let table = document.getElementById("table");
+
     let row = table.insertRow();
 
     row.insertCell(0).innerText = name;
-    row.insertCell(1).innerText = price.toFixed(2);
 
-    let qtyCell = row.insertCell(2);
-    qtyCell.innerHTML = `
-        <button class="small-btn" onclick="changeQty(this, -1)">-</button>
-        ${qty}
-        <button class="small-btn" onclick="changeQty(this, 1)">+</button>
-    `;
+    row.insertCell(1).innerHTML =
+    `<span class="category-tag ${category}">${categoryText}</span>`;
 
-    row.insertCell(3).innerText = sum.toFixed(2);
+    row.insertCell(2).innerText = price.toFixed(2);
 
-    let actionCell = row.insertCell(4);
-    actionCell.innerHTML = `
-        <button class="small-btn" onclick="removeRow(this)">ลบ</button>
-    `;
+    let qtyCell = row.insertCell(3);
+
+    qtyCell.innerHTML =
+    `<button class="small-btn" onclick="changeQty(this,-1)">-</button>
+     ${qty}
+     <button class="small-btn" onclick="changeQty(this,1)">+</button>`;
+
+    row.insertCell(4).innerText = sum.toFixed(2);
+
+    row.insertCell(5).innerHTML =
+    `<button class="small-btn" onclick="removeRow(this)">ลบ</button>`;
 
     updateTotal();
 
-    document.getElementById("name").value = "";
-    document.getElementById("price").value = "";
-    document.getElementById("qty").value = "";
+    document.getElementById("name").value="";
+    document.getElementById("price").value="";
+    document.getElementById("qty").value="";
+
 }
 
-function changeQty(button, change) {
+function changeQty(button, change){
+
     let row = button.parentElement.parentElement;
-    let price = parseFloat(row.cells[1].innerText);
-    let currentQty = parseInt(button.parentElement.childNodes[2].nodeValue.trim());
+
+    let price = parseFloat(row.cells[2].innerText);
+
+    let currentQty =
+    parseInt(button.parentElement.childNodes[2].nodeValue.trim());
+
     let newQty = currentQty + change;
 
-    if(newQty <= 0) return;
+    if(newQty<=0)return;
 
-    button.parentElement.childNodes[2].nodeValue = " " + newQty + " ";
+    button.parentElement.childNodes[2].nodeValue=" "+newQty+" ";
 
-    let newSum = price * newQty;
-    row.cells[3].innerText = newSum.toFixed(2);
+    row.cells[4].innerText = (price*newQty).toFixed(2);
 
     recalculateTotal();
+
 }
 
-function removeRow(button) {
-    let row = button.parentElement.parentElement;
-    row.remove();
+function removeRow(button){
+
+    button.parentElement.parentElement.remove();
+
     recalculateTotal();
+
 }
 
-function recalculateTotal() {
-    total = 0;
-    let table = document.getElementById("table");
+function recalculateTotal(){
 
-    for(let i = 1; i < table.rows.length; i++) {
-        total += parseFloat(table.rows[i].cells[3].innerText);
+    total=0;
+
+    let table=document.getElementById("table");
+
+    for(let i=1;i<table.rows.length;i++){
+
+        total+=parseFloat(table.rows[i].cells[4].innerText);
+
     }
 
     updateTotal();
+
 }
 
-function updateTotal() {
-    document.getElementById("total").innerText = total.toFixed(2);
+function updateTotal(){
+
+    document.getElementById("total").innerText=total.toFixed(2);
+
 }
 
-function calculateChange() {
+function calculateChange(){
 
-    let money = parseFloat(document.getElementById("money").value);
+    let money=parseFloat(document.getElementById("money").value);
 
-    if(isNaN(money)) {
-        alert("กรอกจำนวนเงิน");
+    if(isNaN(money)){
+        alert("กรอกเงิน");
         return;
     }
 
-    if(money < total) {
-        document.getElementById("change").innerText = "เงินไม่พอ!";
-    }
-    else {
-        let change = money - total;
+    if(money<total){
 
-        document.getElementById("change").innerText =
-        "เงินทอน: " + change.toFixed(2) + " บาท";
+        document.getElementById("change").innerText="เงินไม่พอ!";
 
-        dailySales += total;
-        localStorage.setItem("dailySales", dailySales);
-        document.getElementById("daily").innerText = dailySales.toFixed(2);
+    }else{
+
+        let change=money-total;
+
+        document.getElementById("change").innerText=
+        "เงินทอน: "+change.toFixed(2)+" บาท";
+
+        dailySales+=total;
+
+        localStorage.setItem("dailySales",dailySales);
+
+        document.getElementById("daily").innerText=dailySales.toFixed(2);
+
     }
+
 }
 
-function printReceipt() {
+function printReceipt(){
+
     window.print();
+
 }
 
-function clearAll() {
-    document.getElementById("table").innerHTML = `
-        <tr>
-        <th>สินค้า</th>
-        <th>ราคา</th>
-        <th>จำนวน</th>
-        <th>รวม</th>
-        <th>จัดการ</th>
-        </tr>
-    `;
-    total = 0;
+function clearAll(){
+
+    document.getElementById("table").innerHTML=
+    `<tr>
+    <th>สินค้า</th>
+    <th>หมวดหมู่</th>
+    <th>ราคา</th>
+    <th>จำนวน</th>
+    <th>รวม</th>
+    <th>จัดการ</th>
+    </tr>`;
+
+    total=0;
+
     updateTotal();
-    document.getElementById("change").innerText = "";
-    document.getElementById("money").value = "";
+
+    document.getElementById("change").innerText="";
+
 }
 
 </script>
