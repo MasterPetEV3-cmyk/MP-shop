@@ -562,6 +562,298 @@ a.click();
 }
 
 </script>
+<script>
+
+/* =========================
+   MP SHOP POS PRO EXTENSION
+   (ADD ONLY - NO MODIFY)
+========================= */
+
+
+/* STOCK DATABASE */
+
+let stockDB =
+JSON.parse(localStorage.getItem("stockDB")) || {};
+
+
+/* INIT STOCK */
+
+function initStock(){
+
+products.forEach(p=>{
+
+if(!stockDB[p.name]){
+
+stockDB[p.name]=100;
+
+}
+
+});
+
+saveStock();
+
+}
+
+function saveStock(){
+
+localStorage.setItem("stockDB",JSON.stringify(stockDB));
+
+}
+
+
+/* SHOW STOCK */
+
+function renderStock(){
+
+let list=document.getElementById("productList");
+
+let items=list.getElementsByClassName("product");
+
+for(let i=0;i<items.length;i++){
+
+let name=products[i].name;
+
+let qty=stockDB[name] ?? 0;
+
+items[i].innerText=
+products[i].name+
+" - "+
+products[i].price+
+" บาท"+
+" (เหลือ "+qty+")";
+
+}
+
+}
+
+
+/* REDUCE STOCK WHEN ADD CART */
+
+let oldAddCart=addCart;
+
+addCart=function(index){
+
+let name=products[index].name;
+
+if((stockDB[name] ?? 0)<=0){
+
+alert("สินค้าหมด");
+
+return;
+
+}
+
+oldAddCart(index);
+
+};
+
+
+/* REDUCE STOCK WHEN CONFIRM PAYMENT */
+
+let oldConfirm=confirmPayment;
+
+confirmPayment=function(){
+
+cartData.forEach(p=>{
+
+stockDB[p.name]--;
+
+});
+
+saveStock();
+
+oldConfirm();
+
+renderStock();
+
+};
+
+
+/* SALES HISTORY */
+
+function renderHistory(){
+
+let admin=document.getElementById("adminPanel");
+
+let box=document.createElement("div");
+
+box.className="card";
+
+box.innerHTML="<h3>ประวัติการขาย</h3>";
+
+sales.slice().reverse().forEach((s,i)=>{
+
+let div=document.createElement("div");
+
+div.innerText=
+"รายการ "+(sales.length-i)+
+" : "+s+" บาท";
+
+box.appendChild(div);
+
+});
+
+admin.appendChild(box);
+
+}
+
+
+/* RECEIPT */
+
+function printReceipt(){
+
+let text="MP SHOP RECEIPT\n\n";
+
+cartData.forEach(p=>{
+
+text+=p.name+" "+p.price+" บาท\n";
+
+});
+
+let total=cartData.reduce((a,b)=>a+b.price,0);
+
+text+="\nรวม "+total+" บาท";
+
+let win=window.open();
+
+win.document.write("<pre>"+text+"</pre>");
+
+win.print();
+
+}
+
+
+/* DASHBOARD */
+
+function renderDashboard(){
+
+let admin=document.getElementById("adminPanel");
+
+let box=document.createElement("div");
+
+box.className="card";
+
+let today=new Date().toDateString();
+
+let total=sales.reduce((a,b)=>a+b,0);
+
+box.innerHTML=
+"<h3>Dashboard</h3>"+
+"ยอดขายทั้งหมด: "+total+" บาท<br>"+
+"จำนวนบิล: "+sales.length;
+
+admin.appendChild(box);
+
+}
+
+
+/* BACKUP */
+
+function backupData(){
+
+let data={
+
+products,
+sales,
+stockDB
+
+};
+
+let blob=new Blob([JSON.stringify(data)]);
+
+let a=document.createElement("a");
+
+a.href=URL.createObjectURL(blob);
+
+a.download="backup.json";
+
+a.click();
+
+}
+
+
+/* RESTORE */
+
+function restoreData(){
+
+let input=document.createElement("input");
+
+input.type="file";
+
+input.onchange=function(e){
+
+let file=e.target.files[0];
+
+let reader=new FileReader();
+
+reader.onload=function(){
+
+let data=JSON.parse(reader.result);
+
+localStorage.setItem("products",JSON.stringify(data.products));
+localStorage.setItem("sales",JSON.stringify(data.sales));
+localStorage.setItem("stockDB",JSON.stringify(data.stockDB));
+
+alert("Restore สำเร็จ รีโหลดหน้า");
+
+};
+
+reader.readAsText(file);
+
+};
+
+input.click();
+
+}
+
+
+/* ADD ADMIN BUTTONS */
+
+function addAdminButtons(){
+
+let admin=document.getElementById("adminPanel");
+
+let backupBtn=document.createElement("button");
+
+backupBtn.innerText="Backup";
+
+backupBtn.onclick=backupData;
+
+admin.appendChild(backupBtn);
+
+let restoreBtn=document.createElement("button");
+
+restoreBtn.innerText="Restore";
+
+restoreBtn.onclick=restoreData;
+
+admin.appendChild(restoreBtn);
+
+}
+
+
+/* INIT EXTENSION */
+
+let oldLogin=login;
+
+login=function(){
+
+oldLogin();
+
+initStock();
+
+renderStock();
+
+renderHistory();
+
+renderDashboard();
+
+addAdminButtons();
+
+};
+
+
+</script>
 
 </body>
 </html>
